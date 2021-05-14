@@ -1,4 +1,3 @@
-#require(readxl)
 require(lubridate)
 require(dplyr)
 # The two datasets are downloaded from https://donnees.montreal.ca/ville-de-montreal/actes-criminels
@@ -56,128 +55,95 @@ data %>% filter( !(YEAR ==2021 & MONTH==5 )) -> data
 require(reticulate)
 require(tidygeocoder)
 
-#reverse_geo(lasasadat = data$LATITUDE.x[5], long = data$LONGITUDE.x[5],
-#            method = 'osm', verbose = TRUE)
-
-strsplit(as.list(o)$address[1],',')
-usethis::edit_r_environ()
-
-
-get_neighb = function(la,lo){
-  #print(d)o
-  oo=reverse_geo(lat = la, long = lo, method = 'here',
-              verbose = FALSE)
-  out = as.list(o)$address
-  #out = mapply(function(d)tail(unlist(strsplit(d,',')),3)[1],as.list(o)$address)
-return(out)
+# The following function does the extraction of the full address given
+# the coordinates.
+get_addr = function(lat,long){
+  pull=reverse_geo(lat = lat, long = long, method = 'osm', verbose = FALSE)
+  addr = as.list(pull)$address
+  return(addr)
 }
-
-mapply(get_neighb, data[1:5,] %>% select(LONGITUDE.x,LATITUDE.x)%>% c)
-
-#get_neighb(data[82780,] %>% select(LONGITUDE.x,LATITUDE.x))
-
-
-maxr = nrow(data%>% filter(LONGITUDE.x!=1))
-for(a in seq(1,maxr,10000)){
-  b  = min(a+10000,maxr)
-(data%>% filter(LONGITUDE.x!=1))[a:b,] %>%
-    mutate(neighbourhood=get_neighb(LATITUDE.x,LONGITUDE.x)) -> 
-    (data%>% filter(LONGITUDE.x!=1))[a:b,]
-}
-
-for(i in 1:nrow(data)){
-  if(data$LATITUDE.x[i]!=1){
-    data$NEIGH[i] = get_neighb(data$LATITUDE.x[i],data$LONGITUDE.x[i])
+# We now apply the function to all the coordinates.
+# Note that would take several hours to run.
+# addrss: A list of all the full addresses.
+n = nrow(data)
+addrss = rep("",n)
+# I will lookup 10^4 locations per request.
+lookup = FALSE
+if(lookup ==TRUE){
+  for(a in seq(1,n,10000)){
+    b  = min(a+10000-1,n)
+    addrss[a:b] = get_addr(data$LATITUDE.x[a:b],data$LONGITUDE.x[a:b])
+    # After each lookup (of 10^4 locations), the list is saved to disk.
+    print("writing to file") 
+    write.csv(neighbs, './data/addresses.csv')
+    print(b)
   }
-  else{
-    data$NEIGH[i] = "UNKNOWN"
-  }
-  if(i%%1000==0){cat(i, ' ')}
 }
-
-
-data[1:1000,] %>%
-  mutate(neighbourhood=get_neighb(LATITUDE.x,LONGITUDE.x))
-
-
-system.time((d<-get_neighb(data$LATITUDE.x[1:10],data$LONGITUDE.x[1:10])))
-system.time(for(i in 1:100)d=get_neighb(data$LATITUDE.x[i],data$LONGITUDE.x[i]))
-(print("2"))
-
-la = data$LATITUDE.x[140000:140050]; lo=data$LONGITUDE.x[140000:140050]
-data$LATITUDE.x[1:100]
-
-neighbs = rep("",nrow(data))
-#data$neighbourhood = ""
-maxr = nrow(data)
-for(a in seq(140000,maxr,10000)){
-  b  = min(a+10000-1,maxr)
-  data$neighbourhood[a:b] = get_neighb(data$LATITUDE.x[a:b],data$LONGITUDE.x[a:b])
-  print(b)
-}
- b
- 
-
-neighbs2 = rep("",nrow(data))
-maxr = nrow(data)
-for(a in seq(140000,maxr,10000)){
- b  = min(a+10000-1,maxr)
- neighbs[a:b] = get_neighb(data$LATITUDE.x[a:b],data$LONGITUDE.x[a:b])
- print(b)
-}
-
-
-
-
-
-
-neighbsBU = neighbs
-
-nei.df = data.frame(nei1 = neighbsBU[140000:maxr],
-                    nei2 = neighbs[140000:maxr],
-                    mun = data$MUNICIP[140000:maxr])
-
-
-
-
-
-
-
-
-
-get_neighb = function(la,lo){
-  #print(d)o
-  ooo=reverse_geo(lat = la, long = lo, method = 'osm',
-                verbose = FALSE)
-  out = as.list(ooo)$address
-  #out = mapply(function(d)tail(unlist(strsplit(d,',')),3)[1],as.list(o)$address)
-  return(out)
-}
-
-
-address_components <- tribble(
-  ~street, ~cty, ~st, ~ptlcode,
-  "4036 Avenue du Parc-La Fontaine", "Montréal", "QC"," H2L 3M7"
-)
-write(neighbs,'./data/neighbss.csv')
-
 #--------------------------------------------------------
-nei = read.csv('data/neighbs.csv')
-#head(nei$x)
-mf = function(d)
-  paste(unlist((strsplit(d,',')[[1]] %>% tail(7))[1:3]),collapse = ',')
-nei$e=mapply( mf,nei$x )
-nei$mun = data$MUNICIP
-
-nei$nei = mapply( function(d) strsplit(d,",")[[1]][2], nei$e)
-nei %>% filter(nei==" Montréal") %>% select(X) -> mtlids
-nei[unlist(mtlids),]$nei = mapply( function(d) strsplit(d,",")[[1]][1], 
-                                    nei[unlist(mtlids),]$e)
-
-#table(nei$nei)
-
-
-nei %>% filter(nei==" Agglomération de Montréal") %>% select(X) -> drv.ids
-nei[unlist(drv.ids),]$nei = mapply( function(d) strsplit(d,",")[[1]][1], 
-                                   nei[unlist(drv.ids),]$e)
-table(nei$nei)
+# read the list in case it was previousely saved and do the cleaning mentioned above.
+addrss = read.csv('./data/neighbs.csv')
+# print  a sample
+head(addrss$x,2)
+# We notice that the neighbourhood belong to the 7 last items.
+# The following function extracts the first three items from the last 7 items from the address
+ext.nei = function(addr){
+  ext = paste(unlist((strsplit(addr,',')[[1]] %>% tail(7))[1:3]),collapse = ',')
+  return(ext)
+}
+# Now apply to the list
+addrss$ext=mapply(ext.nei,addrss$x )
+# Add the municiplity for comparison reasons.
+addrss$munc = data$MUNICIP
+# For most of the locations, the second item is the neighbourhood so 
+# we set the neighbourhoods to it and later correct the wrong ones.
+addrss$nei = mapply( function(d) strsplit(d,",")[[1]][2], addrss$ext)
+table(addrss$nei)
+# We notice two things:
+# 1. Locations in "Dorval" are set to "Agglomeration de montreal"
+# 2. All Motreal's (city not island) neighbourhoods are the first item of the list
+# not the second.
+addrss %>% filter(nei==" Montréal") %>% select(X) -> mtl.ids
+addrss[unlist(mtl.ids),]$nei = mapply( function(d) strsplit(d,",")[[1]][1], 
+                                    addrss[unlist(mtl.ids),]$ext)
+# Similarly for Dorval
+addrss %>% filter(nei==" Agglomération de Montréal") %>% select(X) -> drv.ids
+addrss[unlist(drv.ids),]$nei = mapply( function(d) strsplit(d,",")[[1]][1], 
+                                   addrss[unlist(drv.ids),]$ext)
+table(addrss$nei)
+# Add municiplity in place of NA values, to be corrected in exel.
+addrss %>% mutate( nei = ifelse(nei=='NA',munc,nei) ) -> addrss
+#---------
+# All seems okay, a couple of further notes:
+# 1. Some locations didn't have long/lat values and their address is set to NA
+# I will fix them by guessing the neighborhoods using the street name and city values.
+# 2. Some names in the list needs to be shortened so it's easier to visualize.
+# I will fix that in a Excel file.
+require(openxlsx)
+write.xlsx(table(addrss$nei), './data/list_neighbourhoods.xlsx')
+new.addrss = read.xlsx('./data/list_neighbourhoods_corrected.xlsx',
+                       rowNames = FALSE,colNames = FALSE)
+# Replace addresses in the dataframe addess
+for(i in 1:nrow(new.addrss)){
+  addrss %>% mutate( nei=replace(nei, nei==new.addrss[i,1], new.addrss[i,2])) -> addrss
+}
+table(addrss$nei) %>% as.data.frame() %>% arrange(desc(Freq))
+#-----------------------------------------
+# Some of those under the category "louis Riel" belong to either Anjou or Mercier
+addrss %>% filter(nei=="Louis-Riel") %>% select(X) -> lr.ids
+addrss[unlist(lr.ids),]$nei = mapply( 
+  function(d) ifelse(d=="ANJ","Anjou","Mercier-Hochelaga-Maisonneuve"),
+  addrss[unlist(lr.ids),]$munc)
+round((table(addrss$nei)/sum(table(addrss$nei)))*100,2) %>%
+  as.data.frame() %>% arrange(desc(Freq))
+#----------------------
+# 12.92% of the data has unknown location.
+# Now we merge the data.
+data$borough = addrss$nei
+data$X = NULL
+data$STREET = NULL
+data$MUNICIP = NULL
+#----------------------------------
+# Save to disk or load from desk if it's been saved earlier
+#write.csv(data, './data/Police_Interventions_cleaned.csv')
+#data = read.csv('./data/Police_Interventions_cleaned.csv')
+#--------------------------------
