@@ -30,11 +30,12 @@ quart.en = c('Day', 'Night', 'Evening')
 quart.rep = function(c) quart.en[which(quart.fr==c)]
 # Apply changes and extract the Year and month
 data %>% mutate(CATEGORIE = mapply(catg.rep,CATEGORIE),
-                MONTH = month(as.Date(DATE, "%Y-%m-%d")),
-                YEAR = year(as.Date(DATE, "%Y-%m-%d")),
+                DATE = as.Date(DATE, "%Y-%m-%d"),
                 QUART = mapply(quart.rep, QUART),
                 STREET = NOM_TEMP, NOM_TEMP = NULL,
                 MUNICIP = MUN_TEMP, MUN_TEMP = NULL) -> data
+data$MONTH = month(data$DATE)
+data$YEAR = year(data$DATE)
 #-------------------------------------------------------------------
 # 3 - Discard obsevations of the current month (May 2021) 
 #since the data won't be complete.
@@ -147,3 +148,23 @@ data$MUNICIP = NULL
 #write.csv(data, './data/Police_Interventions_cleaned.csv')
 #data = read.csv('./data/Police_Interventions_cleaned.csv')
 #--------------------------------
+# save a time-series version of the data
+# as well as time-series per category.
+data %>% 
+  arrange(DATE) %>% 
+  group_by(DATE) %>% 
+  summarise(count = n()) %>% 
+  write.csv('./data/ts_all_categories.csv',row.names = FALSE)
+
+for(cat in rownames(table(data$CATEGORIE))){
+  file.name = paste0('./data/ts_',
+                     paste0(strsplit(cat,' ')[[1]],collapse = '_'),
+                     '.csv')
+  data %>%
+    filter(CATEGORIE==cat) %>%
+    arrange(DATE) %>%
+    group_by(DATE) %>%
+    summarise(count = n()) %>%
+    write.csv(file.name, row.names=FALSE)
+}
+#-------------------------------------------
