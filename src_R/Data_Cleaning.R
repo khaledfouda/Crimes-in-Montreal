@@ -95,7 +95,7 @@ data %>%
 #-------------------------------------------------------------------
 #----------- 6. Translate some of the values from French to English
 catg.fr = table(data$CATEGORIE) %>% names
-catg.en = c("Resulting Death", "Break and Enter", "Mischief", "Auto Burglary",
+catg.en = c("Fatal Crime", "Break and Enter", "Mischief", "Auto Burglary",
             "Auto theft", "Armed Robbery")
 catg.rep = function(c) catg.en[which(catg.fr==c)]
 quart.fr = table(data$QUART) %>% names
@@ -134,10 +134,12 @@ data$idnum = as.numeric(rownames(data))
     
   containing two columns. The addresses and the inquiry id associated with it.
   Below, assuming that the file was excuted, we will make use of that file.
- 
+  --------------------------------------------------------------------------
+  The following files are expected : 
+    data/processing/OSM_ADDS.csv
+    data/processing/list_neighbourhoods_corrected.xlsx
+    data/processing/NA_divisions_corrected.xlsx
 "
-
-
 
 # 4- Extract neighbourhoods.
 #-----------------------------------------------
@@ -209,10 +211,11 @@ data %>% filter(is.na(neig)) %>% pull(DIVISION) %>% table
 data %>% pull(neig) %>%  table %>% rownames
 require(openxlsx)
 # Write the two tables in xlsx and manually fixing them
-write.xlsx(table(data$nei), '../data/processing/list_neighbourhoodsNEW.xlsx')
-data %>% filter(is.na(neig)) %>% pull(DIVISION) %>%
-  table %>%
-  write.xlsx('../data/processing/NA_divisionsNEW.xlsx')
+# uncomment the following 4 lines if new changes are made
+#write.xlsx(table(data$nei), '../data/processing/list_neighbourhoodsNEW.xlsx')
+#data %>% filter(is.na(neig)) %>% pull(DIVISION) %>%
+#  table %>%
+#  write.xlsx('../data/processing/NA_divisionsNEW.xlsx')
 # They are now fixed!. We read them and replace the new columns.
 corr.nei = read.xlsx('../data/processing/list_neighbourhoods_corrected.xlsx',
                        rowNames = FALSE,colNames = TRUE)
