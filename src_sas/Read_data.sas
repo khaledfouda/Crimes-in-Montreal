@@ -22,7 +22,10 @@ data proj_lib.Crime_Data;
 		  LONGITUDE
 		  LATITUDE;
 	*Missing coordinations has values of 1. Note that if LONGITUDE=1  THEN LATITUDE=1;
-	IF LONGITUDE EQ 1 THEN LONGITUDE = .;
+	IF LONGITUDE EQ 1 THEN DO;
+		LONGITUDE = .;
+		LATITUDE = .;
+	END;
 	format DATE DDMMYY10. MONTH EURDFMN12.;
 	label CATEGORIE='Crime Category'
 	      DATE = 'Date'
