@@ -254,7 +254,14 @@ rm(ads.sep, corr.na, corr.nei, ads, ads.new, i, ids, nas, ext.nei, nei.choice,
 # keep relevant columns and save!. ##
 data %>%
   mutate(ARRONDIS = neig) %>%
-  select(CATEGORIE, DATE, ARRONDIS, QUART, MONTH, YEAR, DIVISION, PDQ) -> data
+  select(CATEGORIE, DATE, ARRONDIS, QUART, MONTH, YEAR, DIVISION, PDQ,
+         LONGITUDE, LATITUDE) -> data
+#--------------------------------
+# EDIT JUNE 15, 2021. replace NA values in LONGITUDE/LATITUDE with 1 so
+# SAS can treat the whole column as numbers.
+data %>%
+  mutate(LONGITUDE = ifelse(is.na(LONGITUDE),1,LONGITUDE),
+         LATITUDE  = ifelse(is.na(LATITUDE), 1,LATITUDE)) -> data
 #----------------------------------
 # Save to disk or load from desk if it's been saved earlier
 write.csv(data, '../data/output/Police_Interventions_cleaned.csv',row.names = F)

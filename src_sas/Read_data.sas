@@ -8,7 +8,8 @@ data proj_lib.Crime_Data;
 		   ARRONDIS  $40
 		   DIVISION $80
 		   QUART $10;
-	informat DATE yymmdd.;
+	informat DATE yymmdd.
+			  LONGITUDE LATITUDE best32.;
 	infile &datafile dsd dlm =',' FIRSTOBS=2;
 	input CATEGORIE $
 		  DATE 
@@ -17,8 +18,22 @@ data proj_lib.Crime_Data;
 		  MONTH
 		  YEAR
 		  DIVISION $
-		  PDQ;
+		  PDQ
+		  LONGITUDE
+		  LATITUDE;
+	*Missing coordinations has values of 1. Note that if LONGITUDE=1  THEN LATITUDE=1;
+	IF LONGITUDE EQ 1 THEN LONGITUDE = .;
 	format DATE DDMMYY10. MONTH EURDFMN12.;
+	label CATEGORIE='Crime Category'
+	      DATE = 'Date'
+	      ARRONDIS = 'Borough'
+	      QUART = 'Time of Day'
+	      MONTH = 'Month'
+	      YEAR = 'Year'
+	      DIVISION = 'Police Division'
+	      PDQ = 'Police Division ID'
+	      LONGITUDE = 'Location Long.'
+	      LATITUDE = 'Location Lat.';
 run;
 *--------------------;
 %let n_sample = 20;
@@ -32,6 +47,6 @@ proc surveyselect data=proj_lib.crime_data method=srs rep=1
 	sampsize=&n_sample out=work.sample_print(drop=Replicate) noprint;
 	id _all_;
 run;
-proc print data=work.sample_print noobs;
+proc print data=work.sample_print noobs label;
 run;
 *---------------;
