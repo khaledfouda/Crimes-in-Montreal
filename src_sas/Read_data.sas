@@ -1,5 +1,6 @@
-%let datafile = 'D:\CODE\projects\mtl\Crimes-in-Montreal\data\output\Police_Interventions_cleaned.csv';
-libname proj_lib 'C:/445/project/data';
+%let root_dir = D:\CODE\projects\mtl\Crimes-in-Montreal;
+%let datafile = "&root_dir\data\output\Police_Interventions_cleaned.csv";
+libname proj_lib "&root_dir\data";
 
 
 data proj_lib.Crime_Data;
