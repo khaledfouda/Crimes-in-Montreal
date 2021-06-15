@@ -26,6 +26,8 @@ data proj_lib.Crime_Data;
 		LONGITUDE = .;
 		LATITUDE = .;
 	END;
+	IF ARRONDIS EQ 'NA' then ARRONDIS = '';
+	IF DIVISION EQ 'NA' then DIVISION = '';
 	format DATE DDMMYY10. MONTH EURDFMN12.;
 	label CATEGORIE='Crime Category'
 	      DATE = 'Date'
@@ -44,7 +46,7 @@ run;
 Every time the code is run, a new random sample is show.
 ;
 title "A random sample of &n_sample observations from the data";
-title2 'Total number of rows is 191611 with 8 variables.';
+title2 'Total number of rows is 191,611 with 8 variables.';
 footnote 'A different sample is generated every time you run the code.';
 proc surveyselect data=proj_lib.crime_data method=srs rep=1
 	sampsize=&n_sample out=work.sample_print(drop=Replicate) noprint;
