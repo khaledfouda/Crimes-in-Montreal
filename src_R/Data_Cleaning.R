@@ -118,7 +118,7 @@ data %>% filter( !(YEAR ==2021 & MONTH==6 )) -> data
 data$idnum = as.numeric(rownames(data))
 #-----------------------------------------------------------------------
 #------ 9. Save to disk or load from desk if it's been saved earlier
-#write.csv(data, '../data/output/Police_Interventions_cleaned.csv',row.names = F)
+write.csv(data, '../data/output/Police_Interventions_cleaned.csv',row.names = F)
 #data = read.csv('../data/output/Police_Interventions_cleaned.csv')
 #---------------------------------------------------------------------
 #---- 10. Converting coordinates into neighborhoods names.
@@ -257,7 +257,7 @@ data %>%
   select(CATEGORIE, DATE, ARRONDIS, QUART, MONTH, YEAR, DIVISION, PDQ) -> data
 #----------------------------------
 # Save to disk or load from desk if it's been saved earlier
-write.csv(data, '../data/output/Police_Interventions_cleaned.csv')
+write.csv(data, '../data/output/Police_Interventions_cleaned.csv',row.names = F)
 #data = read.csv('../data/output/Police_Interventions_cleaned.csv')
 #--------------------------------
 # save a time-series version of the data
