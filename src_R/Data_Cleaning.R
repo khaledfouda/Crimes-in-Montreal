@@ -254,7 +254,7 @@ rm(ads.sep, corr.na, corr.nei, ads, ads.new, i, ids, nas, ext.nei, nei.choice,
 # keep relevant columns and save!. ##
 data %>%
   mutate(ARRONDIS = neig) %>%
-  select(CATEGORIE, DATE, ARRONDIS, QUART, MONTH, YEAR, DIVISION, PDQ,
+  select(CATEGORIE, DATE, ARRONDIS, QUART, DIVISION, PDQ,
          LONGITUDE, LATITUDE) -> data
 #--------------------------------
 # EDIT JUNE 15, 2021. replace NA values in LONGITUDE/LATITUDE with 1 so

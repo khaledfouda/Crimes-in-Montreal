@@ -1,0 +1,28 @@
+/* proc sgpanel data=proj_lib.crime_data noautolegend; */
+/* 	*where bp_status='Normal' or bp_status='High'; */
+/* 	panelby CATEGORIE / layout=panel novarname; */
+/* 	histogram CATEGORIE / transparency=0.5; */
+/* 	density CATEGORIE; */
+/* 	rowaxis grid; colaxis grid; */
+/* run; */
+ods graphics on;
+
+
+proc sgpanel data=proj_lib.crime_data;
+	panelby MONTH / layout=rowlattice;
+	hbar CATEGORIE;
+run;
+	
+
+
+
+
+
+
+
+
+
+
+
+
+ods graphics off;

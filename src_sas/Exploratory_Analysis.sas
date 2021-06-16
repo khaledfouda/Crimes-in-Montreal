@@ -35,7 +35,8 @@ proc print data=missing_table noobs;
 	format Percent percent7.1 Count comma.;
 run;
 *-------------------------------------------------------------------------------;
-title '2. Univariate Analysis^n';
+
+title '2. Univariate Analysis';
 title2'i. Number of Crimes per Category';
 proc freq data=proj_lib.crime_data  noprint;
 	tables CATEGORIE / nopercent nocum out=temp1;

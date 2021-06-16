@@ -3,20 +3,19 @@
 libname proj_lib "&root_dir\data\sas";
 
 
+
 data proj_lib.Crime_Data;
 	length CATEGORIE $25
 		   ARRONDIS  $40
 		   DIVISION $80
 		   QUART $10;
 	informat DATE yymmdd.
-			  LONGITUDE LATITUDE best32.;
+			 LONGITUDE LATITUDE best32.;
 	infile &datafile dsd dlm =',' FIRSTOBS=2;
 	input CATEGORIE $
 		  DATE 
 		  ARRONDIS $
 		  QUART $
-		  MONTH
-		  YEAR
 		  DIVISION $
 		  PDQ
 		  LONGITUDE
@@ -28,7 +27,9 @@ data proj_lib.Crime_Data;
 	END;
 	IF ARRONDIS EQ 'NA' then ARRONDIS = '';
 	IF DIVISION EQ 'NA' then DIVISION = '';
-	format DATE DDMMYY10. MONTH EURDFMN12.;
+	format DATE DDMMYY10.;
+	MONTH = put(DATE, monname9.);
+	YEAR = year(DATE);
 	label CATEGORIE='Crime Category'
 	      DATE = 'Date'
 	      ARRONDIS = 'Borough'
