@@ -29,7 +29,7 @@ data proj_lib.Crime_Data;
 	IF DIVISION EQ 'NA' then DIVISION = '';
 	format DATE DDMMYY10.;
 	MONTH = put(DATE, monname3.);
-	YEAR = put(year(DATE),4.);
+	YEAR = year(DATE);
 	label CATEGORIE='Crime Category'
 	      DATE = 'Date'
 	      ARRONDIS = 'Borough'
