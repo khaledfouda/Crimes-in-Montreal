@@ -172,7 +172,7 @@ proc sql;
 	values("text",
 	'DATAPIXEL', 'DATAVALUE',
 	30, 21000, 
-	'left', 'center', 40, 'Decreased by 28.4% in 2018')
+	'left', 'center', 50, 'Decreased by 28.4% in 2018')
 	values("text",
 	'DATAPIXEL', 'DATAVALUE',
 	30, 20000, 
