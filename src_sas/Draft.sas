@@ -7,7 +7,47 @@
 /* run; */
 ods graphics on;
 
+proc freq data=proj_lib.crime_data noprint;
+	*format date monyy5.;
+	where year not eq 2021;
+	tables year * categorie / nopercent nocum norow nocol list out=temp1;
+run;
 
+proc sort data=temp1 out=temp1;
+	by categorie year;
+run;
+
+data temp1;
+	set temp1;
+	by categorie;
+	prv_count = lag(count);
+	if first.categorie or count eq prv_count then 
+		change = .;
+	else change = (count-prv_count)/prv_count;
+	if abs(change) le .13 then change=.;
+	pos_change = change;
+	neg_change = change;
+	if pos_change lt 0 then pos_change = .;
+	if neg_change gt 0 then neg_change = .;
+	format change pos_change neg_change percentn8.1;
+	drop prv_count;
+run;
+
+
+proc sgplot data=temp1 noautolegend;
+	title 'The evolution of crime total over time';
+	title3 'Broken by category and summed over years';
+	footnote 'Only significant changes of over 13% are labeled';
+	footnote3 "Data related to 2021 were omitted since it is not complete";
+	series x=year y=count / group=categorie  lineattrs=(thickness=2) 
+	datalabel=pos_change datalabelattrs=(color=GREEN weight=bold size=10) datalabelpos=top 
+		curvelabel curvelabelloc=outside curvelabelpos=end curvelabelattrs=(weight=BOLD);
+	series x=year y=count / group=categorie datalabel=neg_change
+		datalabelattrs=(color=RED weight=bold size=10) datalabelpos=top;
+	scatter x=year y=count / group=categorie;
+	yaxis label='total' labelattrs=(size=12);
+	xaxis label='Time ( JAN 2015 to DEC 2020)' labelattrs=(size=12);
+run;
 
 
 
