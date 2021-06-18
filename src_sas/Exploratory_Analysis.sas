@@ -121,13 +121,15 @@ data anno;
  	 
 	xc1 = arrondis;
 	y1 = count;
-	drop count categorie;
 	retain function "text" drawspace 'datavalue' width 15 textweight 'Bold'
 		justify "center"  anchor "top" 
 		x1 . x2 .  y2 . xc2 '' X1SPACE '' X2SPACE '' Y1SPACE '' Y2SPACE ''
 		HSYS . size . style '' direction '' scale .  transparency .;
 	label=strip(put(count/&N,percent12.1));
-	output;
+	
+	sum_percent + percent;
+	if _last_ then call symput('sum_percent', strip(put(sum_percent, 6.1)));
+	drop count percent arrondis sum_percent;
  run;
 
 proc sql;
@@ -183,14 +185,16 @@ quit;
 
 
 
-proc sgplot data=temp1 sganno=anno  ; 
+proc sgplot data=temp1 sganno=anno ; 
  title 'Total number of crimes per district';
  title2 'Only those contributing to at least 3% of the total crime rate are shown';
+ title3 "They contribute to &sum_percent% of crime";
 	vbarparm category=arrondis response=count / group=arrondis name='v' transparency=.2;
 	keylegend 'v' / across = 1 position=TOPRIGHT location=inside valueattrs=(Size=10);
 	xaxis display=(NOVALUES noticks) fitpolicy=none label='District';
 	yaxis  tickvalueformat=comma. valueshint integer label='Total';
 run;
+
 *-----------------------------------------------------------;
 
 
