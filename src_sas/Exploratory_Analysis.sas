@@ -34,7 +34,10 @@ run;
 proc print data=missing_table noobs;
 	format Percent percent7.1 Count comma.;
 run;
-*-------------------------------------------------------------------------------;
+*-------------------------------------------------------------------------------
+           plot 1 -  Histogram of categories
+--------------------------------------------------------------------------------
+;
 
 title '2. Univariate Analysis';
 title2'i. Number of Crimes per Category';
@@ -103,7 +106,10 @@ proc sgplot data=temp1 noautolegend sganno=anno_catg /*pad=(bottom=15%)*/;
 	yaxis values=(&count_l) grid tickvalueformat=comma. valueshint integer label='Total';
 run;
 
-*------------------------------------------------------;
+*-------------------------------------------------------------------------------
+           plot 2 -  Histogram of districts
+--------------------------------------------------------------------------------
+;
 proc freq data=proj_lib.crime_data noprint;
 	tables Arrondis / nopercent nocum out=temp1;
 run;
@@ -196,7 +202,10 @@ proc sgplot data=temp1 sganno=anno ;
 run;
 
 *-----------------------------------------------------------;
-
+*-------------------------------------------------------------------------------
+           plot 3 -  timeseries of categories
+--------------------------------------------------------------------------------
+;
 
 proc freq data=proj_lib.crime_data noprint;
 	*format date monyy5.;
