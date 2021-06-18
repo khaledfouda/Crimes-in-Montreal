@@ -102,11 +102,11 @@ proc sql;
 quit;
 
 
-proc sgplot data=temp1 noautolegend sganno=anno_catg /*pad=(bottom=15%)*/;
+proc sgplot data=temp1 noautolegend sganno=anno_catg noborder nowall/*pad=(bottom=15%)*/  ;
  *title 'Total number of crimes per category';
 	vbarparm category=categorie response=count / group=categorie transparency=.2;
-	xaxis fitpolicy=none label='Category';
-	yaxis values=(&count_l) grid tickvalueformat=comma. valueshint integer label='Total';
+	xaxis fitpolicy=none label='Category' labelattrs=(size=12);
+	yaxis values=(&count_l) grid tickvalueformat=comma. valueshint integer label='Total' labelattrs=(size=12);
 run;
 *-------------------------------------------------------------------------------
            plot 2 -  Histogram of districts
@@ -199,8 +199,8 @@ proc sgplot data=temp1 sganno=anno ;
  title3 "They contribute to &sum_percent% of crime";
 	vbarparm category=arrondis response=count / group=arrondis name='v' transparency=.2;
 	keylegend 'v' / across = 1 position=TOPRIGHT location=inside valueattrs=(Size=10);
-	xaxis display=(NOVALUES noticks) fitpolicy=none label='District';
-	yaxis  tickvalueformat=comma. valueshint integer label='Total';
+	xaxis display=(NOVALUES noticks) fitpolicy=none label='District' labelattrs=(size=12);
+	yaxis  tickvalueformat=comma. valueshint integer label='Total' labelattrs=(size=12);
 run;
 
 *-----------------------------------------------------------;
