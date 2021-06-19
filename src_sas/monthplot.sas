@@ -90,7 +90,7 @@
 		x1space = 'DATAVALUE';
 		y1space = 'DATAPIXEL';
 		x1 = 6;
-		y1 = 275;
+		y1 = 375;
 		anchor='center';
 		justify='center';
 		width=50;
@@ -113,7 +113,7 @@
 We first assing the folder where we will keep the output image and then call the template.
 ;
 	ods listing gpath="&out_dir" image_dpi=200;
-	ods graphics / imagename="monthplot_&name";
+	ods graphics / reset scalemarkers=no width=800px imagename="monthplot_&name";
 
 	proc sgrender data=ts_all_mean template=cycle_plot_graph sganno=anno;
 		label month='Month';
