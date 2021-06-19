@@ -7,6 +7,7 @@ data = read.csv('../data/output/ts_all_categories.csv')
 # group by Year-Month
 data %>%
   mutate(YYM=paste0(year(DATE),'-',sprintf("%02d",month(DATE)))) %>% 
+  arrange(year(DATE),month(DATE)) %>%
   group_by(YYM) %>%
   summarise(count = sum(count)) -> data
 # Define time series

@@ -59,10 +59,9 @@ data _null_;
 	allvars = trim(left(allvars))||' '||left(put(count,12.));   
 	if eof then do;
 		call symput('count_l', allvars);
-		%put &=count_l &=N;
 	end;
 run;
-
+%put &=count_l &=N;
 
 data anno_catg;
 	set temp1 end=_last_;

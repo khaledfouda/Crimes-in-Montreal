@@ -1,3 +1,66 @@
+proc sort data=proj_lib.crime_data out=sorted_date(keep=date categorie arrondis);
+	format date monyy7.;
+	by date;
+run;
+proc freq data=sorted_date noprint;
+	tables date / nocum nopercent out=ts_all;
+run;
+
+proc arima data=ts_all;
+	identify var=count nlag=12;
+	run;
+	identify var=count(1);
+	run;
+	identify var=count(1)(12);
+	run;
+	estimate p=1;
+	run;
+	estimate p=1 q=1;
+	run;
+	outlier;
+	run;
+	forecast lead=12 interval=month id=date out=results;
+	run;
+quit;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* proc freq data=proj_lib.crime_data  noprint; */
 /* 	tables CATEGORIE / nopercent nocum out=temp1; */
 /* 	 */
