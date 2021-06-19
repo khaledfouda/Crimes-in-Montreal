@@ -94,7 +94,7 @@
 		anchor='center';
 		justify='center';
 		width=50;
-		label="name";
+		label="&name";
 		textsize=20;
 		textcolor='grey';
 		transparency=.2;

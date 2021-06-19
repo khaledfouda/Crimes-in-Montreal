@@ -8,7 +8,7 @@ libname proj_lib "&root_dir\data\sas";
 		select distinct categorie as cat into :c1 - :c6 from proj_lib.crime_data;
 	quit;
 
-	%DO ii=1 %to 1;
+	%DO ii=1 %to 6;
 		%monthplot(name=&&c&ii);
 	%end;
 %MEND PLOT_CATEGORIES;

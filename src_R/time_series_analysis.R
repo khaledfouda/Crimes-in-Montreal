@@ -3,7 +3,9 @@ require(lubridate)
 library(xts)
 library(tidyr)
 
-data = read.csv('../data/output/ts_all_categories.csv')
+#data = read.csv('../data/output/ts_all_categories.csv')
+
+data = read.csv('../data/output/ts_Fatal_Crime.csv')
 # group by Year-Month
 data %>%
   mutate(YYM=paste0(year(DATE),'-',sprintf("%02d",month(DATE)))) %>% 
