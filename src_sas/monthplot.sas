@@ -90,7 +90,7 @@
 		x1space = 'DATAVALUE';
 		y1space = 'DATAPIXEL';
 		x1 = 6;
-		y1 = 375;
+		y1 = 370;
 		anchor='center';
 		justify='center';
 		width=50;

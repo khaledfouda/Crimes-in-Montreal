@@ -11,11 +11,11 @@
 			begingraph / pad=0px border=false opaque=false 
 				designwidth=&size designheight=&size;
 			layout overlay / walldisplay=none xaxisopts=(display=none) 
-				yaxisopts=(display=none linearopts=(viewmin=&ymin viewmax=&ymax));
+				yaxisopts=(display=none /*linearopts=(viewmin=&ymin viewmax=&ymax)*/);
 			modelband 'spline';
-			pbsplineplot x=&x y=eval(&y+0.5*(&ymin + &ymax)- mean(&y)) / clm='spline' 
+			pbsplineplot x=&x y=&y/*y=eval(&y+0.5*(&ymin + &ymax)- mean(&y))*/ / clm='spline' 
 				nknots=10 lineattrs=(color=linecolor);
-			referenceline y=eval(0.5*(&ymin + &ymax)) / lineattrs=(color=linecolor);
+			referenceline y=eval(mean(&y))/*eval(0.5*(&ymin + &ymax))*/ / lineattrs=(color=linecolor);
 			endlayout;
 			endgraph;
 		end;
@@ -104,7 +104,12 @@
 				thresholdmax=1 tickvalueformat=(extractscale=true)));
 			scatterplot x=&x y=&y / group=&x usediscretesize=true 
 				discretemarkersize=0.85;
-				ANNOTATE;
+			ANNOTATE;
+			layout gridded / columns =1 border=true autoalign=(bottomright topright) backgroundcolor=lightyellow ;
+				entry halign=left  {unicode '2014'x} halign=right "mean line";
+				entry textattrs=(color=green) halign=left  {unicode '2014'x} halign=right "lowest mean";
+				entry textattrs=(color=Red) halign=left  {unicode '2014'x} halign=right "highest mean";
+			endlayout;
 			endlayout;
 			endgraph;
 		end;
