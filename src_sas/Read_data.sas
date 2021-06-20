@@ -5,14 +5,14 @@ libname proj_lib "&root_dir\data\sas";
 
 
 data proj_lib.Crime_Data;
-	length CATEGORIE $25
+	length category $25
 		   ARRONDIS  $40
 		   DIVISION $80
 		   QUART $10;
 	informat DATE yymmdd.
 			 LONGITUDE LATITUDE best32.;
 	infile &datafile dsd dlm =',' FIRSTOBS=2;
-	input CATEGORIE $
+	input category $
 		  DATE 
 		  ARRONDIS $
 		  QUART $
@@ -30,9 +30,9 @@ data proj_lib.Crime_Data;
 	format DATE DDMMYY10.;
 	MONTH = put(DATE, monname3.);
 	YEAR = year(DATE);
-	label CATEGORIE='Crime Category'
+	label category='Crime Category'
 	      DATE = 'Date'
-	      ARRONDIS = 'Borough'
+	      ARRONDIS = 'district'
 	      QUART = 'Time of Day'
 	      MONTH = 'Month'
 	      YEAR = 'Year'
@@ -47,7 +47,7 @@ run;
 Every time the code is run, a new random sample is show.
 ;
 title "A random sample of &n_sample observations from the data";
-title2 'Total number of rows is 191,611 with 8 variables.';
+title2 'Total number of rows is 191,611.';
 footnote 'A different sample is generated every time you run the code.';
 proc surveyselect data=proj_lib.crime_data method=srs rep=1
 	sampsize=&n_sample out=work.sample_print(drop=Replicate) noprint;
@@ -56,3 +56,20 @@ run;
 proc print data=work.sample_print noobs label;
 run;
 *---------------;
+
+/* options printerpath=png nodate papersize=('6.8in','3.5in') nonumber; */
+/* ods _all_ close; */
+/* ods printer file="&print_dir\sample_table.png"; */
+/*  */
+/* title 'A sample of 3 obseravations.'; */
+/* title2 'Total number of observations is 191,611'; */
+/* footnote; */
+/* proc print data=work.sample_print(obs=3) label; */
+/* run; */
+/* ods printer close; */
+/* ods listing; */
+
+
+
+
+

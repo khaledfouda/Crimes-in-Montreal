@@ -29,7 +29,7 @@
 		%do;
 
 			proc sort data=&input out=ts_all(keep=date);
-				where categorie eq "&name";
+				where category eq "&name";
 				format date monyy7.;
 				by date;
 			run;
@@ -122,4 +122,5 @@ We first assing the folder where we will keep the output image and then call the
 	run;
 
 	ods listing close;
+	ods graphics close;
 %mend monthplot;

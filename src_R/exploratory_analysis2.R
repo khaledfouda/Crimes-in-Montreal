@@ -10,9 +10,9 @@ data %>%
 #--------------------------------------------
 # cateory
 data %>% 
-  count(CATEGORIE = factor(CATEGORIE)) %>%
+  count(CATEGORY = factor(CATEGORY)) %>%
   mutate(pct = prop.table(n)) %>%
-  ggplot(aes(reorder(CATEGORIE,-n),n, fill=CATEGORIE, label = scales::percent(pct))) + 
+  ggplot(aes(reorder(CATEGORY,-n),n, fill=CATEGORY, label = scales::percent(pct))) + 
   geom_col(position = 'dodge',show.legend = FALSE) + 
   geom_text(position = position_dodge(width = .9),    # move to center of bars
             vjust = -0.5,    # nudge above top of bar
@@ -42,32 +42,32 @@ data %>%
 #----------------------
 # category month
 data %>% 
-  count(MONTH = factor(MONTH), CATEGORIE=factor(CATEGORIE),c=MONTH) %>%
+  count(MONTH = factor(MONTH), CATEGORY=factor(CATEGORY),c=MONTH) %>%
   mutate(pct = prop.table(n),c=as.numeric(MONTH)) %>% 
   #arrange(c) %>%
   mutate(MONTH = month.abb[c]) %>%
-  ggplot(aes(reorder(MONTH,c),n,fill=CATEGORIE, label = scales::percent(pct))) + 
+  ggplot(aes(reorder(MONTH,c),n,fill=CATEGORY, label = scales::percent(pct))) + 
   geom_col(position = 'identity',show.legend = F) + 
-  facet_wrap(~CATEGORIE, scales='free') +
+  facet_wrap(~CATEGORY, scales='free') +
   labs(x="", y="Count")
 #------------------------------------------------
 # category - year
  data %>% 
-  count(YEAR = factor(YEAR), CATEGORIE=factor(CATEGORIE),c=YEAR) %>%
+  count(YEAR = factor(YEAR), CATEGORY=factor(CATEGORY),c=YEAR) %>%
   mutate(pct = prop.table(n),c=as.numeric(YEAR)) %>% 
-  ggplot(aes(reorder(YEAR,c),n,fill=CATEGORIE, label = scales::percent(pct))) + 
+  ggplot(aes(reorder(YEAR,c),n,fill=CATEGORY, label = scales::percent(pct))) + 
   geom_col(position = 'identity',show.legend = F) + 
-  facet_wrap(~CATEGORIE, scales='free') +
+  facet_wrap(~CATEGORY, scales='free') +
   labs(x="", y="Count")
 #------------------------------------------------------
 # category - quartly
 data %>% 
   
-  count(QUART = factor(QUART), CATEGORIE=factor(CATEGORIE)) %>%
+  count(QUART = factor(QUART), CATEGORY=factor(CATEGORY)) %>%
   mutate(pct = prop.table(n)) %>% 
-  ggplot(aes(QUART,n,fill=CATEGORIE, label = scales::percent(pct))) + 
+  ggplot(aes(QUART,n,fill=CATEGORY, label = scales::percent(pct))) + 
   geom_col(position = 'identity',show.legend = F) + 
-  facet_wrap(~CATEGORIE, scales='free') +
+  facet_wrap(~CATEGORY, scales='free') +
   labs(x="", y="Count")
 
 
@@ -137,9 +137,9 @@ data %>%
 #  Category  -  YEARLY - ICREMENT
 
 data %>%
-  arrange(CATEGORIE, YEAR) %>%
-  count(YEAR = factor(YEAR), CATEGORIE=factor(CATEGORIE),c=YEAR) %>%
-  group_by(CATEGORIE) %>%
+  arrange(CATEGORY, YEAR) %>%
+  count(YEAR = factor(YEAR), CATEGORY=factor(CATEGORY),c=YEAR) %>%
+  group_by(CATEGORY) %>%
   summarise(inc=round(((n/lag(n))-1)*100,1)) %>%
   mutate(typ = replace_na(ifelse(inc>0,1,-1),0), inc=replace_na(as.character(inc),'')) %>%
   select(inc,typ)  -> top3_yr_inc
@@ -147,13 +147,13 @@ data %>%
 
 
 data %>% 
-  count(YEAR = factor(YEAR), CATEGORIE=factor(CATEGORIE),c=YEAR) %>%
-  arrange(CATEGORIE, YEAR) %>%
+  count(YEAR = factor(YEAR), CATEGORY=factor(CATEGORY),c=YEAR) %>%
+  arrange(CATEGORY, YEAR) %>%
   mutate(pct = prop.table(n),c=as.numeric(YEAR),inc=top3_yr_inc$inc, typ=factor(top3_yr_inc$typ)) %>% 
-  ggplot(aes(reorder(YEAR,c),n,fill=CATEGORIE)) +
+  ggplot(aes(reorder(YEAR,c),n,fill=CATEGORY)) +
   scale_colour_manual(values = c("0" = "white","1" = "red", "-1" = "green")) +
   geom_col(position = 'identity',show.legend = F) + 
-  facet_wrap(~CATEGORIE, scales='free') +
+  facet_wrap(~CATEGORY, scales='free') +
   labs(x="", y="Count") +
   geom_label(aes(label=inc,color=typ),fill='grey', fontface = "bold",vjust=2,show.legend = F)
 
@@ -190,7 +190,7 @@ data %>%
 # 
 # data.summ = data.frame()
 # data %>% 
-#   group_by(YEAR,CATEGORIE) %>%
+#   group_by(YEAR,CATEGORY) %>%
 #   summarise(count=n()) %>%
 #   group_by(YEAR) %>%
 #   mutate(i1 = row_number()) %>%
@@ -205,8 +205,8 @@ data %>%
 #   as.data.frame %>%
 #   `colnames<-` (.[1,]) %>%
 #   .[-1,] %>%
-#   mutate(CATEGORIE="ALL") %>%
-#   relocate(CATEGORIE,1) %>%
+#   mutate(CATEGORY="ALL") %>%
+#   relocate(CATEGORY,1) %>%
 #   rbind(data.summ) %>%
 #   select(-"2021")-> data.summ
 # 
@@ -217,4 +217,4 @@ data %>%
 #   .[-1,] %>%
 #   melt() %>% 
 #   ggplot(aes(x=variable, y=log(value))) +
-#   geom_line(aes(color=CATEGORIE, group=CATEGORIE))
+#   geom_line(aes(color=CATEGORY, group=CATEGORY))

@@ -4,7 +4,7 @@ source('./helper.R')
 # library(xts)
 # library(tidyr)
 
-data = read.csv('./data/ts_all_categories.csv')
+data = read.csv('./data/ts_all_CATEGORIES.csv')
 # group by Year-Month
 data %>%
   mutate(DATE=paste0(year(DATE),'-',sprintf("%02d",month(DATE)))) %>% 

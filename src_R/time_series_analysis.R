@@ -3,7 +3,7 @@ require(lubridate)
 library(xts)
 library(tidyr)
 
-#data = read.csv('../data/output/ts_all_categories.csv')
+#data = read.csv('../data/output/ts_all_CATEGORIES.csv')
 
 data = read.csv('../data/output/ts_Fatal_Crime.csv')
 # group by Year-Month
@@ -74,7 +74,7 @@ t_test(remainder~YEAR,paired = TRUE, detailed = TRUE) %>%
 
 #-----------------------
 # Using xts
-data.d = read.csv('./data/ts_all_categories.csv')
+data.d = read.csv('./data/ts_all_CATEGORIES.csv')
 dts.x = xts(data.d$count, order.by = as.Date(data.d$DATE))
 plot(dts.x)
 dts.x.month <- apply.monthly(dts.x, mean)

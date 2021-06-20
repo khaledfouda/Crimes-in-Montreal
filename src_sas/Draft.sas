@@ -1,35 +1,58 @@
-proc sort data=proj_lib.crime_data out=sorted_date(keep=date categorie arrondis);
-	format date monyy7.;
-	by date;
-run;
+
+/* proc sort data=proj_lib.crime_data out=sorted_date(keep=date categorie arrondis); */
+/* 	format date monyy7.; */
+/* 	by date; */
+/* run; */
 proc freq data=sorted_date noprint;
+	where categorie eq 'Fatal Crime';
 	tables date / nocum nopercent out=ts_all;
 run;
+/*  */
+/* proc arima data=ts_all; */
+/* 	identify var=count nlag=12; */
+/* 	run; */
+/* 	identify var=count(1); */
+/* 	run; */
+/* 	identify var=count(1)(12); */
+/* 	run; */
+/* 	estimate p=1; */
+/* 	run; */
+/* 	estimate p=1 q=1; */
+/* 	run; */
+/* 	outlier; */
+/* 	run; */
+/* 	forecast lead=12 interval=month id=date out=results; */
+/* 	run; */
+/* quit; */
+/*  */
+/*  */
+/* proc arima data=ts_all; */
+/* 	identify var=count(1) nlag=12 noprint; */
+/* 	estimate plot; */
+/* 	run; */
+/* 	estimate p=(1)(12) q=(1)(12); */
+/* 	*forecast lead=12 interval=month id=date; */
+/* 	outlier; */
+/* run; */
+/*  */
+/*  */
 
-proc arima data=ts_all;
-	identify var=count nlag=12;
-	run;
-	identify var=count(1);
-	run;
-	identify var=count(1)(12);
-	run;
-	estimate p=1;
-	run;
-	estimate p=1 q=1;
-	run;
-	outlier;
-	run;
-	forecast lead=12 interval=month id=date out=results;
-	run;
-quit;
 
+/*  */
+/*  */
+/* proc timeseries data=sashelp.air outdecomp=outdecomp; */
+/*    id date interval=month; */
+/*    var air; */
+/*    decomp orig tcs tcc sic tc sc cc ic; */
+/* run; */
 
-
-
-
-
-
-
+/* decompose with additive option - just for a comparison  */
+proc timeseries data=ts_all outdecomp=outdecomp plots=( DecompositionPlots
+PACFPlot tc sc cc ic);
+   id date interval=month;
+   var count;
+   decomp orig tcs tcc sic tc sc cc ic / mode=add;
+run;
 
 
 

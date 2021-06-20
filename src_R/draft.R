@@ -13,8 +13,8 @@ summ.pdq %>%
 
 data %>%
   filter(YEAR==2019) %>% 
-  group_by(CATEGORIE) %>%
-  arrange(PDQ,CATEGORIE, .by_group = T) %>%
+  group_by(CATEGORY) %>%
+  arrange(PDQ,CATEGORY, .by_group = T) %>%
   count(PDQ, sort=F) %>%
   filter(PDQ==20) %>%
   View()

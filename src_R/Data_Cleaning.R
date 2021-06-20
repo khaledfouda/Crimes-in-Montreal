@@ -48,7 +48,9 @@ data = left_join(interv, pdq, c('PDQ'))
 # Whenever longitude or latitude are set to 1, they are missing 
 data %>% 
   mutate(LONGITUDE = replace(LONGITUDE, LONGITUDE==1, NA),
-         LATITUDE = replace(LATITUDE, LATITUDE==1, NA)) -> data
+         LATITUDE = replace(LATITUDE, LATITUDE==1, NA),
+         CATEGORY = CATEGORIE,
+         CATEGORIE = NULL) -> data
 #--------------------
 # analyzing NAs
 print('Distribution of missing values')
@@ -66,7 +68,7 @@ data %>% filter(!is.na(PDQ)) -> data
 print("Missing Coordinations' distribution")
 data %>% 
   filter(is.na(LONGITUDE)|is.na(LATITUDE))  %>% 
-  select(CATEGORIE) %>% 
+  select(CATEGORY) %>% 
   table() 
 ' Next we want to see how many of these missing coordinations have pdqs
 That are not in the spvm$pdq dataset.
@@ -90,11 +92,11 @@ data = left_join(data, spvm.pdq, c('PDQ')) #left_join doesn't sort the data
 # --------- 5. Drop some of the unrelevant columns. -------
 names(data)
 data %>% 
-  select(CATEGORIE, DATE, QUART, PDQ,
+  select(CATEGORY, DATE, QUART, PDQ,
          DIVISION, LONGITUDE, LATITUDE) -> data
 #-------------------------------------------------------------------
 #----------- 6. Translate some of the values from French to English
-catg.fr = table(data$CATEGORIE) %>% names
+catg.fr = table(data$CATEGORY) %>% names
 catg.en = c("Fatal Crime", "Break and Enter", "Mischief", "Auto Burglary",
             "Auto theft", "Armed Robbery")
 catg.rep = function(c) catg.en[which(catg.fr==c)]
@@ -102,7 +104,7 @@ quart.fr = table(data$QUART) %>% names
 quart.en = c('Day', 'Night', 'Evening')
 quart.rep = function(c) quart.en[which(quart.fr==c)]
 # Apply changes and extract the Year and month
-data %>% mutate(CATEGORIE = mapply(catg.rep,CATEGORIE),
+data %>% mutate(CATEGORY = mapply(catg.rep,CATEGORY),
                 DATE = as.Date(DATE, "%Y-%m-%d"),
                 QUART = mapply(quart.rep, QUART)) -> data
 #-------------------------------------------------------------------
@@ -254,7 +256,7 @@ rm(ads.sep, corr.na, corr.nei, ads, ads.new, i, ids, nas, ext.nei, nei.choice,
 # keep relevant columns and save!. ##
 data %>%
   mutate(ARRONDIS = neig) %>%
-  select(CATEGORIE, DATE, ARRONDIS, QUART, DIVISION, PDQ,
+  select(CATEGORY, DATE, ARRONDIS, QUART, DIVISION, PDQ,
          LONGITUDE, LATITUDE) -> data
 #--------------------------------
 # EDIT JUNE 15, 2021. replace NA values in LONGITUDE/LATITUDE with 1 so
@@ -273,14 +275,14 @@ data %>%
   arrange(DATE) %>% 
   group_by(DATE) %>% 
   summarise(count = n()) %>% 
-  write.csv('../data/output/ts_all_categories.csv',row.names = FALSE)
+  write.csv('../data/output/ts_all_CATEGORIES.csv',row.names = FALSE)
 
-for(cat in rownames(table(data$CATEGORIE))){
+for(cat in rownames(table(data$CATEGORY))){
   file.name = paste0('../data/output/ts_',
                      paste0(strsplit(cat,' ')[[1]],collapse = '_'),
                      '.csv')
   data %>%
-    filter(CATEGORIE==cat) %>%
+    filter(CATEGORY==cat) %>%
     arrange(DATE) %>%
     group_by(DATE) %>%
     summarise(count = n()) %>%
