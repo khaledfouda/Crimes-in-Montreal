@@ -75,3 +75,22 @@ run;
 %time_series_report(Armed Robbery, 2, ucm_Armed_robberies);
 %time_series_report(Auto theft, 2, ucm_Auto_thefts);
 *-------------------------------------------------------------;
+proc sql;
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
