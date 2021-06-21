@@ -4,60 +4,24 @@ libname proj_lib "&root_dir\data\sas";
 ods escapechar='^'; /* To allow the abbr ^n for inserting new lines in titles and footnotes.*/
 ods graphics on;
 *---------------------------------------------;
-proc sql noprint;
-	create table categories as
-		select distinct category format=$25. 
-			from proj_lib.crime_data;
-quit;
+/* proc sql noprint; */
+/* 	create table categories as */
+/* 		select distinct category format=$25.  */
+/* 			from proj_lib.crime_data; */
+/* quit; */
 
 
 proc sort data=proj_lib.crime_data out=sorted(keep=date category);
-	format date monyy7. category $25.;
+	format date monyy7.;
 	by category date;
 run;
-
-
 
 
 proc freq data=sorted noprint;
 /* 	where category not eq 'Fatal Crime'; */
 	by category;
-	format date monyy7. category $25.;
-	tables date / nocum nopercent out=sorted;
-run;
-data AllMonthYear;
-	start = '01Jan2015'd;
-	set categories;
-	do i=0 to 76;
-		date = intnx('month', start, i);
-		output;
-	end;
-	drop start i;
-	format date monyy7. category $25.;
-run;
-
-	
-
-
-
-proc sql;
-	create table corrected as
-		select t2.date, t2.category, t1.count, t1.category as cat2, t1.date as d2
-			from sorted as t1
-				left join AllMonthYear as t2
-					on(t1.date=t2.date and t1.category=t2.category);
-	*drop table sorted;
-	drop table AllMonthYear;
-quit;
-	
-proc sort data=corrected out=corrected;
 	format date monyy7.;
-	by category date;
-run;
-	
-proc expand data=sorted out=outsor from=month;
-	by category;
-	id date;
+	tables date / nocum nopercent out=sorted;
 run;
 
 
@@ -87,22 +51,49 @@ proc sgplot data=scaled_decomp noautolegend;
 	xaxis interval=month;
 run;
 
+ods graphics/ reset=all;
 
-
-proc timeseries data=corrected outdecomp=outdecomp(keep=category date cc) plots=all;
+proc timeseries data=sorted outdecomp=outdecomp plot=all
+								/*plots=(pacf sc sic tcs cc tc ic SERIES)*/  ;
 	by category;
-   id date interval=month start='01JAN2015'd end='31MAY2021'd setmissing=0;
+   id date interval=month start='01JAN2015'd end='31MAY2021'd setmissing=.0001;
    var count;
-   decomp cc / mode=add;
+   corr lag n pacf;
+   decomp orig tc sc ic cc / mode=add;
+   
+run;
+
+ods select ExtremeObs;
+proc univariate data=outdecomp robustscale ;
+by category;
+var  ic;
+id date;
+output out=extreme; 
+run; 
+ods graphics /reset=ALL;
+
+
+proc expand data=sorted out=outsor from=month;
+	by category;
+	id date;
 run;
 
 
-
-
-
-
-
-
+ods select ParameterEstimates FitSummary ComponentSignificance OutlierSummary PanelResidualPlot;
+proc ucm data=outsor;
+	where category = "Break and Enter";
+	*by category;
+	id date interval=month;
+	model count;
+	irregular p=1 q=1  s=12;
+	deplag lags=(1)(12);
+	season length=12  ;
+	estimate plot=panel outest=out1;
+	forecast outfor=fore1 ;
+	outlier maxnum=5 print=short;
+	
+run;
+	ods graphics /reset=ALL;
 
 
 
