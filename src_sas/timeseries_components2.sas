@@ -49,6 +49,8 @@ run;
 		model count;
 		irregular p=&p q=1 s=12;
 		deplag lags=(1, 12);
+		level variance=0 noest ;
+		slope variance=0 noest ;
 		season length=12;
 		estimate plot=acf /*outest=out1*/;
 		forecast outfor=&outfor;
@@ -65,8 +67,8 @@ run;
 		update &outfor
 		set category="&categ";
 		create table temp as select category, date, count, s_irreg, s_season, s_treg, 
-			s_noirreg from ucm_all union select category, date, count, s_irreg, 
-			s_season, s_treg, s_noirreg from &outfor;
+			s_noirreg, s_level from ucm_all union select category, date, count, s_irreg, 
+			s_season, s_treg, s_noirreg, s_level from &outfor;
 		drop table &outfor;
 		drop table ucm_all;
 		create table ucm_all as select * from temp;
@@ -77,7 +79,7 @@ run;
 
 *---------------------------------------------------------;
 data ucm_all;
-	format category $25. date monyy7. count 5. s_irreg s_season s_treg s_noirreg 
+	format category $25. date monyy7. count 5. s_irreg s_season s_treg s_noirreg s_level
 		14.4;
 	stop;
 run;
@@ -89,8 +91,9 @@ run;
 %time_series_report(Armed Robbery, 2, ucm_Armed_robberies);
 %time_series_report(Auto theft, 2, ucm_Auto_thefts);
 *-------------------------------------------------------------;
-
-
+proc sgplot data=ucm_all noautolegend;
+	series x=date y=s_season / group=category;
+run;
 
 
 
