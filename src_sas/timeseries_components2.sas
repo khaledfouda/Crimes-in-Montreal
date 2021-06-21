@@ -23,17 +23,10 @@ proc freq data=sorted noprint;
 	tables date / nocum nopercent out=sorted;
 run;
 
-proc expand data=sorted out=outsor from=month;
-	by category;
-	id date;
-run;
-
 proc timeseries data=sorted out=outsor;
 	by category;
 	id date interval=month start='01JAN2015'd end='31MAY2021'd setmissing=.0000;
 	var count;
-	*corr lag n pacf;
-	*decomp orig tc sc ic cc / mode=add;
 run;
 
 *-----------------------------------------------------------;
@@ -65,9 +58,30 @@ run;
 	ods printer close;
 	ods listing;
 	ods graphics /reset=ALL;
+
+	proc sql ;
+		alter table &outfor
+		add category VARCHAR(25) format=$25.;
+		update &outfor
+		set category="&categ";
+		create table temp as select category, date, count, s_irreg, s_season, s_treg, 
+			s_noirreg from ucm_all union select category, date, count, s_irreg, 
+			s_season, s_treg, s_noirreg from &outfor;
+		drop table &outfor;
+		drop table ucm_all;
+		create table ucm_all as select * from temp;
+		drop table temp;
+	quit;
+
 %mend time_series_report;
 
 *---------------------------------------------------------;
+data ucm_all;
+	format category $25. date monyy7. count 5. s_irreg s_season s_treg s_noirreg 
+		14.4;
+	stop;
+run;
+*------------------------------------------------------------;
 %time_series_report(Fatal Crime, 1, ucm_fatal_crimes);
 %time_series_report(Auto Burglary, 1, ucm_Auto_burgalaries);
 %time_series_report(Break and Enter, 1, ucm_break_and_enter);
@@ -75,3 +89,9 @@ run;
 %time_series_report(Armed Robbery, 2, ucm_Armed_robberies);
 %time_series_report(Auto theft, 2, ucm_Auto_thefts);
 *-------------------------------------------------------------;
+
+
+
+
+
+

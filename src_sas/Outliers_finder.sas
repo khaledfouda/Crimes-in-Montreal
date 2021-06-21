@@ -1,101 +1,41 @@
-/* Calculate the quartiles and inter-quartile range using proc univariate */
-proc means data=outdecomp nway noprint;
-		by category;
-		var cc;
-		output out=temp P25=P25 P75=P75;
+/* ods listing gpath="&print_dir" image_dpi=200 ; */
+/* ods graphics / reset scalemarkers=no width=800px imagename="seasonality" ; */
+/*  */
+/* proc sgpanel data=ucm_all noautolegend; */
+/* 	title 'Seasonality per category'; */
+/* 	where date between '01JAN2018'd and '31DEC2018'd; */
+/* 	panelby category /  novarname  nowall noheaderborder  ; */
+/* 	series x=date y=s_season / transparency=.8 ; */
+/* 	scatter x=date y=s_season ; */
+/* 	colaxis  interval=month label='Month' valuesformat=monname3. ; */
+/* 	rowaxis display=none; */
+/* run; */
+/* ods listing; */
+/* ods graphics; */
+/* *------------------------------------------------------------------------; */
+ods listing gpath="&print_dir" image_dpi=200 ;
+ods graphics / reset scalemarkers=no width=800px imagename="model_fit" ;
+
+proc sgpanel data=ucm_std ;
+	title 'Model Fit (After applying seasonality and ARMA model)';
+	title2 'The data were standardized to keep a common y-axis';
+	where date lt '01JUN2021'd;
+	panelby category /  novarname  nowall noheaderborder  ;
+	series x=date y=s_treg / transparency=.1 name='Model' legendlabel='Model' ;
+	scatter x=date y=count /transparency=.7 name='Original' legendlabel='Original';
+	colaxis  interval=year label='Month' /*valuesformat=monname3.*/ ;
+	rowaxis display=none;
+	keylegend "Model" "Original" / position=top;
 run;
-	/* Extract the upper and lower limits into macro variables */
-	*let Imterquartile range be IQR = Q3-Q1 then,
-	lower limit low = Q1 - 3 * IQR
-	upper limit upp = Q3 + 3 * IQR
-;
-data temp;
-	set temp;
-	IQR = p75 - p25;
-	low = p25 - 1 * IQR;
-	upp = p75 + 1 * IQR;
-	keep category low upp;
-run;
-
-/* The following extracts the outliers as a table of category, date, type, and count*/
-data extremeObs;
-	set temp(rename=(category=ecat));
-	do until (eof);
-		set outdecomp end=eof;
-		if category = ecat;
-		if cc not eq . then do;
-			if 	cc < low then do;
-				type = 'lower';
-				output;
-			end;
-			else if cc > upp then do;
-				type = 'Upper';
-				output;
-			end;
-		end;
-	end;
-	keep category date type original;
-run;
-		
+ods listing;
+ods graphics;
 
 
 
 
-
-
-
-
-
-
-
-
-%macro outliers(input=, var=, output=);
-	
-	/* Calculate the quartiles and inter-quartile range using proc univariate */
-	proc means data=&input nway noprint;
-		var &var;
-		output out=temp P25=P75= / autoname;
-	run;
-
-	/* Extract the upper and lower limits into macro variables */
-	data temp;
-		set temp;
-		ID=1;
-		array varb(&n) &Q1;
-		array varc(&n) &Q3;
-		array lower(&n) &varL;
-		array upper(&n) &varH;
-
-		do i=1 to dim(varb);
-			lower(i)=varb(i) - 3 * (varc(i) - varb(i));
-			upper(i)=varc(i) + 3 * (varc(i) - varb(i));
-		end;
-		drop i _type_ _freq_;
-	run;
-
-	data temp1;
-		set &input;
-		ID=1;
-	run;
-
-	data &output;
-		merge temp1 temp;
-		by ID;
-		array var(&n) &var;
-		array lower(&n) &varL;
-		array upper(&n) &varH;
-
-		do i=1 to dim(var);
-
-			if not missing(var(i)) then
-				do;
-
-					if var(i) >=lower(i) and var(i) <=upper(i);
-				end;
-		end;
-		drop &Q1 &Q3 &varL &varH ID i;
-	run;
-
-%mend;
-
-%outliers(input=tt, var=age weight height, output=outresult);
+/*  */
+/*  */
+/* proc stdize data=ucm_all out=ucm_std method=std; */
+/* 	by category; */
+/* 	var count s_treg s_irreg; */
+/* run; */
