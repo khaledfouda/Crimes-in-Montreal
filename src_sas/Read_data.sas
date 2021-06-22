@@ -1,10 +1,17 @@
-%let root_dir = D:\CODE\projects\mtl\Crimes-in-Montreal;
+/*All the plots and tables produced in this and other SAS files can be exported in a png form. 
+The lines to export are commented. Uncomment them if you need the files and 
+don't forget provide the folder where you need to have them in print_dir macro variable */
+
 %let datafile = "&root_dir\data\output\Police_Interventions_cleaned.csv";
-libname proj_lib "&root_dir\data\sas";
+%let root_dir = D:\CODE\projects\mtl\Crimes-in-Montreal;
+libname DataLib "&root_dir\data\sas";
+%let print_dir = &root_dir\plots\SAS\EDA; 
+ods escapechar='^'; /* To allow the abbr ^n for inserting new lines in titles and footnotes.*/
+ods graphics on;
+*---------------------------------------------;
 
-
-
-data proj_lib.Crime_Data;
+/*Read the data and put it in a permanent sas-data-file*/
+data DataLib.Crime_Data;
 	length category $25
 		   ARRONDIS  $40
 		   DIVISION $80
@@ -49,20 +56,20 @@ Every time the code is run, a new random sample is show.
 title "A random sample of &n_sample observations from the data";
 title2 'Total number of rows is 191,611.';
 footnote 'A different sample is generated every time you run the code.';
-proc surveyselect data=proj_lib.crime_data method=srs rep=1
+proc surveyselect data=DataLib.crime_data method=srs rep=1
 	sampsize=&n_sample out=work.sample_print(drop=Replicate) noprint;
 	id _all_;
 run;
 proc print data=work.sample_print noobs label;
 run;
-*---------------;
-
+*---------------
+Optional - We export only 3 random rows to a file. Uncomment if needed.
+;
 /* options printerpath=png nodate papersize=('6.8in','3.5in') nonumber; */
 /* ods _all_ close; */
 /* ods printer file="&print_dir\sample_table.png"; */
 /*  */
 /* title 'A sample of 3 obseravations.'; */
-/* title2 'Total number of observations is 191,611'; */
 /* footnote; */
 /* proc print data=work.sample_print(obs=3) label; */
 /* run; */

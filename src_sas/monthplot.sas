@@ -1,22 +1,43 @@
+
+
+
+/*All the plots and tables produced in this and other SAS files can be exported in a png form. 
+The lines to export are commented. Uncomment them if you need the files and 
+don't forget provide the folder where you need to have them in print_dir macro variable */
+
+%let root_dir = D:\CODE\projects\mtl\Crimes-in-Montreal;
+libname DataLib "&root_dir\data\sas";
+%let print_dir = &root_dir\plots\SAS\monthplot; 
+ods escapechar='^'; /* To allow the abbr ^n for inserting new lines in titles and footnotes.*/
+ods graphics on;
+*---------------------------------------------;
+* ----------------------------------------------------------------------------------------------------------------
+	This file includes only one large MACRO function.
+	It creates a complete month plot - using the helper functions from monthplot_MACROS.sas - for one category.
+
+	If the macro was called with the default parameter, it will create a monthplot for the whole ungroped data.
+	Our input data "crime_data" is already set as default so we don't need to specify it.
+	Likely, the temporary folder to save the subseries images is where the WORK library is,
+		and the output library is as defined above print_dir.
+;
+
 %include "&root_dir\src_sas\monthplot_MACROS.sas";
 
-%macro monthplot(input=proj_lib.crime_data, name=All_data, 
-		tmp_dir=%sysfunc(getoption(WORK)), out_dir=&root_dir\plots\SAS\);
+%macro monthplot(input=DataLib.crime_data, name=All_data, 
+		tmp_dir=%sysfunc(getoption(WORK)), out_dir=&print_dir);
 	* 
-     part one: Preparing the data,
-     
-     The input dataset is expected to have a date column,
-     
-     The following code will sort by date, extract the month, add month number and names columns.
-     Then another dataframe with only the means per month is created.
-     A couple of macro variables are created wich are:
-     	count_min count_max (min and max values in order to normalise the count values so we can judge change)
-     	symbols, values (lists of all month names/numbers to be used as axes/labels)
-     	month_min, month_max (month with lowest/highest average to be used to color those months)
+	This MACRO function is divided into two parts.
+		part 1. Data processing :
+			proc sort & freq as usual besides using proc sql to compute some variables needed for the graph.
+			These Macro variables holds the values of : 
+				Symbols : List of all month names. JANUARY to DECEMBER
+				Month_min and Month_max : The two months with minimum and maximum means so they can have different colors.
+
+		part 2. Producing the graph.
 
 ;
 
-	%if "&name" eq "All_data" %then
+	%if "&name" eq "All_data" %then /*Don't use where statement if no categories were specified*/
 		%do;
 
 			proc sort data=&input out=ts_all(keep=date);
@@ -46,11 +67,9 @@
 		month=month(date);
 	run;
 
-	/* computing min/max */
-	proc sql noprint;
-		select min(count), max(count) into :count_min, :count_max from ts_all;
-		select distinct monthname, month into :symbols separated by ' ', :values 
-			separated by ' ' from ts_all order by month;
+	
+	proc sql noprint; /*making a list of all months names*/
+		select distinct monthname into :symbols separated by ' ' from ts_all order by month;
 	quit;
 
 	/* computing mean on month */
@@ -76,10 +95,8 @@
  we will set a temporary folder to locate them. That folder is defined below in gpath;
 	%let gpath= &tmp_dir;
 	*;
-	%subseries_template(x=date, y=count, ymin=&count_min, ymax=&count_max, 
-		size=200px);
-	%all_subseries_plots(symbols=&symbols, data=ts_all, wherevar=month, 
-		wherevalues=&values, maxvalue=&monthmax, minvalue=&monthmin);
+	%subseries_template(x=date, y=count, size=200px);
+	%all_subseries_plots(symbols=&symbols, data=ts_all, wherevar=month, wherevalues=&values, maxvalue=&monthmax, minvalue=&monthmin);
 	*-------------------------------------------------
 
 			The following are the annotations to display the category in the graph.;
