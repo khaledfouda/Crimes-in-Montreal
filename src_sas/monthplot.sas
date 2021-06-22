@@ -7,7 +7,7 @@ don't forget provide the folder where you need to have them in print_dir macro v
 
 %let root_dir = D:\CODE\projects\mtl\Crimes-in-Montreal;
 libname DataLib "&root_dir\data\sas";
-%let print_dir = &root_dir\plots\SAS\monthplot; 
+%let print_dir = &root_dir\plots\SAS\monthplot\; 
 ods escapechar='^'; /* To allow the abbr ^n for inserting new lines in titles and footnotes.*/
 ods graphics on;
 *---------------------------------------------;
@@ -17,14 +17,14 @@ ods graphics on;
 
 	If the macro was called with the default parameter, it will create a monthplot for the whole ungroped data.
 	Our input data "crime_data" is already set as default so we don't need to specify it.
-	Likely, the temporary folder to save the subseries images is where the WORK library is,
+	Likely, the temporary folder to save the subseries images is named "tmp" in the plots folder.
 		and the output library is as defined above print_dir.
 ;
-
+ODS PATH work.templat(update) sasuser.templat(read) sashelp.tmplmst(read);
 %include "&root_dir\src_sas\monthplot_MACROS.sas";
 
 %macro monthplot(input=DataLib.crime_data, name=All_data, 
-		tmp_dir=%sysfunc(getoption(WORK)), out_dir=&print_dir);
+		tmp_dir=&root_dir\plots\SAS\tmp, out_dir=&print_dir);
 	* 
 	This MACRO function is divided into two parts.
 		part 1. Data processing :
@@ -37,28 +37,28 @@ ods graphics on;
 
 ;
 
-	%if "&name" eq "All_data" %then /*Don't use where statement if no categories were specified*/
-		%do;
+	%if "&name" eq "All_data" %then %do; /*Don't use where statement if no categories were specified*/
+		proc sort data=&input out=ts_all(keep=date);
+			format date monyy7.;
+			by date;
+		run;
 
-			proc sort data=&input out=ts_all(keep=date);
-				format date monyy7.;
-				by date;
-			run;
-
-		%end;
-	%else
-		%do;
-
-			proc sort data=&input out=ts_all(keep=date);
-				where category eq "&name";
-				format date monyy7.;
-				by date;
-			run;
-
-		%end;
+	%end;
+	%else %do;
+		proc sort data=&input out=ts_all(keep=date);
+			where category eq "&name";
+			format date monyy7.;
+			by date;
+		run;
+	%end;
 
 	proc freq data=ts_all noprint;
 		tables date / nocum nopercent out=ts_all(drop=percent);
+	run;
+
+	proc timeseries data=ts_all out=ts_all;
+		id date interval=month start='01JAN2015'd end='31MAY2021'd setmissing=.0000;
+		var count;
 	run;
 
 	data ts_all;
@@ -69,7 +69,9 @@ ods graphics on;
 
 	
 	proc sql noprint; /*making a list of all months names*/
-		select distinct monthname into :symbols separated by ' ' from ts_all order by month;
+		select min(count), max(count) into :count_min, :count_max from ts_all;
+		select distinct monthname, month into :symbols separated by ' ', :values
+				separated by ' ' from ts_all order by month;
 	quit;
 
 	/* computing mean on month */
@@ -95,14 +97,13 @@ ods graphics on;
  we will set a temporary folder to locate them. That folder is defined below in gpath;
 	%let gpath= &tmp_dir;
 	*;
-	%subseries_template(x=date, y=count, size=200px);
-	%all_subseries_plots(symbols=&symbols, data=ts_all, wherevar=month, wherevalues=&values, maxvalue=&monthmax, minvalue=&monthmin);
+	%subseries_template(x=date, y=count,ymin=&count_min, ymax=&count_max, size=200px);
+	%all_subseries_plots(symbols=&symbols, data=ts_all, wherevalues=&values, maxvalue=&monthmax, minvalue=&monthmin);
 	*-------------------------------------------------
 
-			The following are the annotations to display the category in the graph.;
+	The following are the annotations to display the category as a title in the graph.;
 
-	data anno;
-		
+	data anno; /*It only has one row.*/
 		function = "text";
 		x1space = 'DATAVALUE';
 		y1space = 'DATAPIXEL';
@@ -111,6 +112,8 @@ ods graphics on;
 		anchor='center';
 		justify='center';
 		width=50;
+		*if "&name" eq "All_data" then label = ' ';
+		*else label="&name";
 		label="&name";
 		textsize=20;
 		textcolor='grey';
@@ -120,9 +123,8 @@ ods graphics on;
 
 	*-------------------------------------------------------------------------------------;
 	* Next we define the ticks by concatinating month names and adding '' and , ;
-	%let ticks=%sysfunc(catq('1a', %sysfunc(translate(%upcase(&symbols), %str(,), 
-		%str( )))));
-	%put &=ticks;
+	%let ticks=%sysfunc(catq('1a', %sysfunc(translate(%upcase(&symbols), %str(,), %str( )))));
+		%put &=ticks;
 	* We now initialize the main plots template. ;
 	%cycle_plot_template(x=month, y=count, symbols=&symbols, ticks=&ticks);
 	*-----------------------------------------------------------;
@@ -139,5 +141,5 @@ We first assing the folder where we will keep the output image and then call the
 	run;
 
 	ods listing close;
-	ods graphics close;
+	ods graphics off;
 %mend monthplot;

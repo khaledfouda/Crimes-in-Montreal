@@ -20,6 +20,8 @@ The 5 functions in order :
 %macro subseries_template(
 	x=, 
 	y=, 
+	ymin=,
+	ymax=,
 	size=/* image size */);
 	proc template ;
 		define statgraph subseries;
@@ -41,11 +43,11 @@ The 5 functions in order :
 
 %macro subseries_plot(symbol=, /* a name to given to the image file*/
 	data=,
-	whereclause=, /* where clause for this symbol */
+	moni=, /* month number */
 	linecolor=/* line color to highlight the max/min */);
 	ods graphics / reset imagename="&symbol";
 
-	proc sgrender data=&data(where=(&whereclause)) template=subseries;
+	proc sgrender data=&data(where=(month=&moni)) template=subseries;
 		dynamic linecolor="&linecolor";
 	run;
 
@@ -63,11 +65,12 @@ The 5 functions in order :
 	ods _all_ close;
 	ods listing gpath="&gpath";
 	/*%let word_cnt=%sysfunc(countw(%superq(symbols)));*/ /*number of mo*/
+	%let word_cnt=%sysfunc(countw(%superq(symbols)));
 
-	%do i=1 %to 12;
+	%do i=1 %to &word_cnt;
 		%let var&i=%qscan(%superq(symbols), &i, %str( )); /* gets the ith month name*/
-		/*%let val&i=&i*/ /*%qscan(%superq(wherevalues), &i, %str( ))*/;
-		%subseries_plot(symbol=&&var&i, data=&data, whereclause=month=&i, 
+		%let val&i=%qscan(%superq(wherevalues), &i, %str( ));
+		%subseries_plot(symbol=&&var&i, data=&data, moni=&&val&i, 
 			linecolor=%if(&maxvalue=&i) %then red;
 		%else %if(&minvalue=&i) %then
 			green;
@@ -81,11 +84,10 @@ The 5 functions in order :
 *----------------------------------------------------------------------------------------;
 * 4;
 %macro symbol_images(symbols /* list of symbols */);
-	*%let word_cnt=%sysfunc(countw(%superq(symbols)));
-
-	%do i=1 %to 12;
-		%let var&i=%qscan(%superq(symbols), &i, %str( ));
-		symbolimage name=&&&var&i image="&gpath/&&&var&i...png"; /*we can refernce the image later using the name*/
+	%let word_cnt=%sysfunc(countw(%superq(symbols)));
+	%do is=1 %to 12;
+		%let var&is=%qscan(%superq(symbols), &is, %str( ));
+		symbolimage name=&&&var&is image="&gpath\&&&var&is...png"; /*we can refernce the image later using the name*/
 	%end;
 %mend symbol_images;
 
@@ -100,7 +102,7 @@ The 5 functions in order :
 		define statgraph cycle_plot_graph; /*stat graph template allows us to describe the srtucture and appearence of the graph*/
 			dynamic title1 title2; /* for two titles */
 			
-			begingraph /*/ subpixel=on attrpriority=none*/ /* each group gets a new symbol */
+			begingraph / subpixel=on attrpriority=none /* each group gets a new symbol */
 				datasymbols=(&symbols);
 
 				entrytitle title1; /*to show the titles*/
@@ -114,8 +116,9 @@ The 5 functions in order :
 					yaxisopts=(linearopts=(thresholdmin=1 thresholdmax=1 tickvalueformat=(extractscale=true)));
 				scatterplot x=&x y=&y / group=&x usediscretesize=true discretemarkersize=0.85;
 				/*The following layout is defined the legend.*/
+				ANNOTATE; 
 				layout gridded / columns =1 border=true autoalign=(bottomright topright) backgroundcolor=lightyellow ;
-					ANNOTATE; 
+					
 					entry halign=left  {unicode '2014'x} halign=right "mean line";
 					entry textattrs=(color=green) halign=left  {unicode '2014'x} halign=right "lowest mean";
 					entry textattrs=(color=Red) halign=left  {unicode '2014'x} halign=right "highest mean";
@@ -127,5 +130,8 @@ The 5 functions in order :
 	run;
 
 %mend cycle_plot_template;
+
+
+
 
 *-----------------------------------------------------------------------;

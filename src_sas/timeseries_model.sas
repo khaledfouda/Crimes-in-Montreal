@@ -1,18 +1,22 @@
-%let root_dir = D:\CODE\projects\mtl\Crimes-in-Montreal;
-libname proj_lib "&root_dir\data\sas";
-%let print_dir = &root_dir\plots\SAS;
-ods escapechar='^';
+/*All the plots and tables produced in this and other SAS files can be exported in a png form. 
+The lines to export are commented. Uncomment them if you need the files and 
+don't forget provide the folder where you need to have them in print_dir macro variable */
 
+%let root_dir = D:\CODE\projects\mtl\Crimes-in-Montreal;
+libname DataLib "&root_dir\data\sas";
+%let print_dir = &root_dir\plots\SAS\timeseries\; 
+ods escapechar='^'; /* To allow the abbr ^n for inserting new lines in titles and footnotes.*/
+ods graphics on;
 /* To allow the abbr ^n for inserting new lines in titles and footnotes.*/
 ods graphics on;
 *---------------------------------------------;
 
 proc sql noprint;
 	create table categories as select distinct category format=$25. from 
-		proj_lib.crime_data;
+		DataLib.crime_data;
 quit;
 
-proc sort data=proj_lib.crime_data out=sorted(keep=date category);
+proc sort data=DataLib.crime_data out=sorted(keep=date category);
 	format date monyy7.;
 	by category date;
 run;
@@ -31,7 +35,7 @@ run;
 
 *-----------------------------------------------------------;
 
-%MACRO time_series_report(categ, p, outfor);
+%MACRO time_series_report(categ, outfor, p=, q=1, sp=0, sq=0);
 	ods _all_ close;
 	options printerpath=png nodate papersize=('12in', '9in') nonumber;
 	ods select ParameterEstimates ComponentSignificance FitSummary OutlierSummary 
@@ -40,6 +44,7 @@ run;
 	%put &=filename;
 	title "&categ";
 	title2 'Time Series Fitting Analysis';
+	title3 "ARIMA(&p,0,&q)(&sp,0,&sq)[12]";
 	* 1. Armed Robbery:;
 	ods printer file=&filename columns=2 dpi=200;
 
@@ -47,10 +52,10 @@ run;
 		where category="&categ";
 		id date interval=month;
 		model count;
-		irregular p=&p q=1 s=12;
-		deplag lags=(1, 12);
-		level variance=0 noest ;
-		slope variance=0 noest ;
+		irregular p=&p q=&q sp=&sp sq=&sq s=12 ;
+		deplag  lags=(1,12);
+		level variance=0  ;
+		slope variance=0 ;
 		season length=12;
 		estimate plot=acf /*outest=out1*/;
 		forecast outfor=&outfor;
@@ -59,7 +64,7 @@ run;
 
 	ods printer close;
 	ods listing;
-	ods graphics /reset=ALL;
+	ods graphics;
 
 	proc sql ;
 		alter table &outfor
@@ -84,22 +89,22 @@ data ucm_all;
 	stop;
 run;
 *------------------------------------------------------------;
-%time_series_report(Fatal Crime, 1, ucm_fatal_crimes);
-%time_series_report(Auto Burglary, 1, ucm_Auto_burgalaries);
-%time_series_report(Break and Enter, 1, ucm_break_and_enter);
-%time_series_report(Mischief, 2, ucm_mischief);
-%time_series_report(Armed Robbery, 2, ucm_Armed_robberies);
-%time_series_report(Auto theft, 2, ucm_Auto_thefts);
+%time_series_report(Fatal Crime, ucm_fatal_crimes, p=2, q=2, sp=0, sq=0);
+%time_series_report(Auto Burglary, ucm_Auto_burgalaries, p=0, q=1, sp=0, sq=1);
+%time_series_report(Break and Enter, ucm_break_and_enter, p=0, q=0, sp=1, sq=1);
+%time_series_report(Mischief, ucm_mischief, p=0, q=1, sp=0, sq=0);
+%time_series_report(Armed Robbery, ucm_Armed_robberies, p=1, q=0, sp=0, sq=1);
+%time_series_report(Auto theft, ucm_Auto_thefts, p=2, q=2, sp=1, sq=0);
 *-------------------------------------------------------------;
 proc stdize data=ucm_all out=ucm_std method=std;
 	by category;
-	var count s_treg s_irreg s_level;
+	var count s_treg s_irreg s_level s_season;
 run;
 *-------------------------------------------------------------------;
 ods listing gpath="&print_dir" image_dpi=200 ;
-ods graphics / reset scalemarkers=no width=800px imagename="model_seasonality" ;
+ods graphics on / reset scalemarkers=no width=800px imagename="model_seasonality" ;
 
-proc sgpanel data=ucm_all noautolegend;
+proc sgpanel data=ucm_std noautolegend;
 	title 'SEASONALITY';
 	where date between '01JAN2018'd and '31DEC2018'd;
 	panelby category /  novarname  nowall noheaderborder  ;
@@ -112,7 +117,7 @@ ods listing;
 ods graphics;
 *------------------------------------------------------------------------;
 ods listing gpath="&print_dir" image_dpi=200 ;
-ods graphics / reset scalemarkers=no width=800px imagename="model_fit" ;
+ods graphics on / reset scalemarkers=no width=800px imagename="model_fit" ;
 
 proc sgpanel data=ucm_std ;
 	title 'Model Fit (After applying seasonality and ARMA model)';
@@ -142,8 +147,8 @@ ods listing;
 ods graphics;
 *---------------------------------------------------------------------------------------;
 ods listing gpath="&print_dir" image_dpi=200 ;
-ods graphics / reset scalemarkers=no width=800px imagename="model_trends" ;
-proc sgpanel data=ucm_all noautolegend ;
+ods graphics on / reset scalemarkers=no width=800px imagename="model_trends" ;
+proc sgpanel data=ucm_std noautolegend ;
 	title 'TRENDS';
 	title2 'The data were standardized to keep a common y-axis';
 	where date lt '01JUN2021'd;
