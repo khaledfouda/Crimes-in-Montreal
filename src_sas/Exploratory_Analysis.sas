@@ -1,70 +1,78 @@
+/*All the plots and tables produced in this and other SAS files can be exported in a png form. 
+The lines to export are commented. Uncomment them if you need the files and 
+don't forget provide the folder where you need to have them in print_dir macro variable */
+
 %let root_dir = D:\CODE\projects\mtl\Crimes-in-Montreal;
-libname proj_lib "&root_dir\data\sas";
-%let print_dir = &root_dir\plots\SAS;
+libname DataLib "&root_dir\data\sas";
+%let print_dir = &root_dir\plots\SAS\EDA; 
 ods escapechar='^'; /* To allow the abbr ^n for inserting new lines in titles and footnotes.*/
 ods graphics on;
 *---------------------------------------------;
-* We first print a sample of the data;
 
 
-* 1. Missing Values Analysis ;
+* 1. Missing Values Analysis. We count the number of missing data points in columns of interest.
+We will also compute their percentage of the dataset and then print them (either to an image or the screen);
 title 'Montreal Crime Study^n
 -----------------------^nExploratory Analysis^n
 -----------------------^n1.Missing Values Analysis';
 footnote;
  data missing_table(keep=type location district Police_Division);
 	length type $15.;
-	set proj_lib.crime_data nobs=n;
-	call symput('N',n);
+	set DataLib.crime_data nobs=n end=eof;
+	call symput('N',n); /* we will make use of this macro variable later */
 	
 	retain location 0 district 0 Police_Division 0 ;
 	if missing(LONGITUDE)  then Location + 1;
 	if missing(ARRONDIS)  then district + 1;
 	if missing(DIVISION)  then Police_Division + 1;
 	
-	if _N_ EQ n then do;
+	if eof then do;
 		type = 'Count';
-		output;
+		output; /*output number of missing values*/
 		Location = put(Location / n,7.2);
 		district = put(district / n,7.2);
 		Police_Division = put(Police_Division / n,7.2);
 		type='Percent';
-		output;
+		output; /*output their percentages*/
 	end;
 run;
 PROC TRANSPOSE DATA=missing_table out=missing_table name=Variable;
 	ID TYPE;
 run;
-options printerpath=png nodate papersize=('4.8in','2.5in') nonumber;
-ods _all_ close;
-ods printer file="&print_dir\missing_table.png";
+
+/*options printerpath=png nodate papersize=('4.8in','2.5in') nonumber;*/
+/*ods _all_ close;*/
+/*ods printer file="&print_dir\missing_table.png";*/
+
 proc print data=missing_table noobs;
 	format Percent percent7.1 Count comma.;
 run;
-ods printer close;
-ods listing;
+
+/*ods printer close;*/
+/*ods listing;*/
+
 *-------------------------------------------------------------------------------
            plot 1 -  Histogram of categories
 --------------------------------------------------------------------------------
 ;
 
-ods listing gpath="&root_dir\plots\SAS\" image_dpi=200;
-ods graphics / reset scalemarkers=no /*width=800px*/ imagename="categories_univ";
+/*ods listing gpath="&print_dir" image_dpi=200;*/
+/*ods graphics / reset scalemarkers=no  imagename="categories_univ";*/
+
 
 title '2. Univariate Analysis';
 title2'i. Number of Crimes per Category';
 
 *-----------------------------------------------------;
-proc freq data=proj_lib.crime_data  noprint;
+proc freq data=DataLib.crime_data  noprint;
 	tables category / nopercent nocum out=temp1;
-	
 run;
 
 proc sort data=temp1 out=temp1;
 	by Descending Count;
 
 run;
-data _null_;
+data _null_; /*here we create the ticks for the y_axis in a macro variable.*/
 	length allvars $1000;   
 	set temp1 end=eof;
 	retain allvars ' ';   
@@ -73,9 +81,8 @@ data _null_;
 		call symput('count_l', allvars);
 	end;
 run;
-%put &=count_l &=N;
 
-data anno_catg;
+data anno_catg; /*The annotation on the graph. In this part of the code we create the percentages with their location on the graph.*/
 	set temp1 end=_last_;
 	length  anchor$6 function $13
 		style $10 xc2 $15 direction $10 label $300
@@ -93,7 +100,7 @@ data anno_catg;
  run;
 
 proc sql;
-
+	/*We then add more rows to ann_catg to account to draw an arrow and a tex on the graph.*/
 	insert into work.anno_catg (function, 
 	drawspace,xc1, xc2, y1, y2, 
 	direction, style, scale, transparency)
@@ -112,8 +119,7 @@ proc sql;
 	;
 quit;
 
-
-proc sgplot data=temp1 noautolegend sganno=anno_catg noborder nowall/*pad=(bottom=15%)*/  ;
+proc sgplot data=temp1 noautolegend sganno=anno_catg noborder nowall  ;
  	title 'Total number of crimes per category';
 	title5 'The y-axis corresponds to the sum of crimes in each category';
 	footnote;
@@ -121,23 +127,27 @@ proc sgplot data=temp1 noautolegend sganno=anno_catg noborder nowall/*pad=(botto
 	xaxis fitpolicy=none label='Category' labelattrs=(size=12);
 	yaxis values=(&count_l) grid tickvalueformat=comma. valueshint integer label='Total' labelattrs=(size=12);
 run;
-ods listing close;
+
+/*ods listing close;*/
+
 *-------------------------------------------------------------------------------
            plot 2 -  Histogram of districts
 --------------------------------------------------------------------------------
 ;
-ods listing gpath="&root_dir\plots\SAS\" image_dpi=200;
-ods graphics / reset scalemarkers=no width=800px imagename="districts_univ";
-proc freq data=proj_lib.crime_data noprint;
+
+/*ods listing gpath="&print_dir" image_dpi=200;*/
+/*ods graphics / reset scalemarkers=no width=800px imagename="districts_univ";*/
+
+proc freq data=DataLib.crime_data noprint;
 	tables Arrondis / nopercent nocum out=temp1;
 run;
 proc sort data=temp1 out=temp1;
-	where percent > 3;
+	where percent > 3; /*keep only districts who contribute to at least 3% of the total crime.*/
 	by descending count;
 run;
 
 
-data anno;
+data anno; /*As before, we begin by  creating the labels on the bars.*/
 	set temp1 end=_last_;
 	length  anchor$6 function $13 
 		style $10 xc2 $15 direction $10 label $300
@@ -157,7 +167,7 @@ data anno;
  run;
 
 proc sql noprint;
-
+	/*We then add to the table above more arrowsand text.*/
 	insert into work.anno(function, 
 	x1space, x2space, y1space, y2space,
 	x1, x2, y1, y2, 
@@ -205,12 +215,9 @@ proc sql noprint;
 	;
 
 	select count(distinct arrondis) format 2.
-	into :n_arrond
-	from proj_lib.crime_data;
+	into :n_arrond /*The number of different districts to be shown in the footer.*/
+	from DataLib.crime_data;
 quit;
-
-
-
 
 
 proc sgplot data=temp1 sganno=anno ; 
@@ -223,18 +230,20 @@ proc sgplot data=temp1 sganno=anno ;
 	xaxis display=(NOVALUES noticks) fitpolicy=none label='District' labelattrs=(size=12);
 	yaxis  tickvalueformat=comma. valueshint integer label='Total' labelattrs=(size=12);
 run;
-ods listing close;
+
+/*ods listing close;*/
 
 *-----------------------------------------------------------;
 *-------------------------------------------------------------------------------
-           plot 3 -  timeseries of categories
+           plot 3 -  Evolution of crimes over time by category
 --------------------------------------------------------------------------------
 ;
-ods listing gpath="&root_dir\plots\SAS\" image_dpi=200;
-ods graphics / reset scalemarkers=no width=800px imagename="categories_year";
-proc freq data=proj_lib.crime_data noprint;
-	*format date monyy5.;
-	where year not eq 2021;
+
+/*ods listing gpath="&print_dir" image_dpi=200;*/
+/*ods graphics / reset scalemarkers=no width=800px imagename="categories_year";*/
+
+proc freq data=DataLib.crime_data noprint;
+	where year not eq 2021; /*skip 2021 since it's not complete*/
 	tables year * category / nopercent nocum norow nocol list out=temp1;
 run;
 
@@ -244,14 +253,15 @@ run;
 
 
 data temp1;
+	/*We add one more column to the data that has the change in percentage from the year before*/
 	set temp1;
 	by category;
 	prv_count = lag(count);
-	if first.category or count eq prv_count then 
+	if first.category or count eq prv_count then /*If there is no change or it's the first year*/ 
 		change = .;
 	else change = (count-prv_count)/prv_count;
-	if abs(change) le .13 then change=.;
-	pos_change = change;
+	if abs(change) le .13 then change=.; /*Drop the change that is less than 13% (so we can print only relevant change)*/
+	pos_change = change; /*keep track of positive and negetive changes so we give them different colors on graph*/
 	neg_change = change;
 	if pos_change lt 0 then pos_change = .;
 	if neg_change gt 0 then neg_change = .;
@@ -265,6 +275,7 @@ proc sgplot data=temp1 noautolegend;
 	title3 'Broken by category and summed over years';
 	footnote 'Only significant changes of over 13% are labeled';
 	footnote3 "Data related to 2021 were omitted since it is not complete";
+	/*series statement is repeated twice so we can show the positive and negative labels in different colors.*/
 	series x=year y=count / group=category  lineattrs=(thickness=2) transparency=.2  lineattrs=(pattern=Solid)
 	datalabel=pos_change datalabelattrs=(color=RED weight=bold size=10) datalabelpos=top 
 		curvelabel curvelabelloc=outside curvelabelpos=end curvelabelattrs=(weight=BOLD);
@@ -275,5 +286,6 @@ proc sgplot data=temp1 noautolegend;
 	xaxis label='Time ( JAN 2015 to DEC 2020)' labelattrs=(size=12);
 run;
 
-ods listing close;
+/*ods listing close;*/
 ods graphics off;
+
