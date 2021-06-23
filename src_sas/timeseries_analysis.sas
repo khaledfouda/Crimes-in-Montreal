@@ -20,7 +20,7 @@ ODS PATH work.templat(update) sasuser.templat(read) sashelp.tmplmst(read);
 		select distinct category as cat into :c1 - :c6 from DataLib.crime_data;
 	quit;
 
-	%DO ii=1 %to 6; /*loop over each category.*/
+	%DO ii=1 %to 2; /*loop over each category.*/
 		%monthplot(name=&&c&ii);
 	%end;
 %MEND PLOT_categories;

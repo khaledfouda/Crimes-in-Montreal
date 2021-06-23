@@ -136,8 +136,8 @@ We first assing the folder where we will keep the output image and then call the
 
 	proc sgrender data=ts_all_mean template=cycle_plot_graph sganno=anno;
 		label month='Month';
-		dynamic title1="Month average of registered crimes for &name" 
-			title2="Subseries shows the spline fit of crimes over time";
+		dynamic title1="Monthly Seasonality of the total number of Crimes per category" 
+			title2="A spline fit curve with 95% CI and a reference line highlighting the mean are shown";
 	run;
 
 	ods listing close;

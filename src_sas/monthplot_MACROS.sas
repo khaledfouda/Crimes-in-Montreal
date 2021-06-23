@@ -58,18 +58,15 @@ The 5 functions in order :
 
 %macro all_subseries_plots(symbols=, /* list of symbols (month names in our case) */
 	data=, /* dataset */
-	/*wherevar=,*/ /* (month) variable used for subsetting */
 	wherevalues=, /* (a list of month numbers) where values */
 	maxvalue=, /* value with the max mean - make it red */
 	minvalue=/* value with the min mean - make it green*/);
 	ods _all_ close;
 	ods listing gpath="&gpath";
-	/*%let word_cnt=%sysfunc(countw(%superq(symbols)));*/ /*number of mo*/
-	%let word_cnt=%sysfunc(countw(%superq(symbols)));
 
-	%do i=1 %to &word_cnt;
+	%do i=1 %to 12;
 		%let var&i=%qscan(%superq(symbols), &i, %str( )); /* gets the ith month name*/
-		%let val&i=%qscan(%superq(wherevalues), &i, %str( ));
+		%let val&i=%qscan(%superq(wherevalues), &i, %str( )); /* The month's number. don't use &i since they are not ordered!! */
 		%subseries_plot(symbol=&&var&i, data=&data, moni=&&val&i, 
 			linecolor=%if(&maxvalue=&i) %then red;
 		%else %if(&minvalue=&i) %then
@@ -102,8 +99,7 @@ The 5 functions in order :
 		define statgraph cycle_plot_graph; /*stat graph template allows us to describe the srtucture and appearence of the graph*/
 			dynamic title1 title2; /* for two titles */
 			
-			begingraph / subpixel=on attrpriority=none /* each group gets a new symbol */
-				datasymbols=(&symbols);
+			begingraph / subpixel=on attrpriority=none datasymbols=(&symbols);
 
 				entrytitle title1; /*to show the titles*/
 				entrytitle title2;
@@ -113,10 +109,10 @@ The 5 functions in order :
 				layout overlay / /*two nested layouts are defined*/
 					xaxisopts=(type=discrete display=(tickvalues label) discreteopts=(colorbands=odd colorbandsattrs=(transparency=0.75) 
 						tickdisplaylist=(&ticks))) 
-					yaxisopts=(linearopts=(thresholdmin=1 thresholdmax=1 tickvalueformat=(extractscale=true)));
+					yaxisopts=(linearopts=(thresholdmin=1 thresholdmax=1 tickvalueformat=(extractscale=true)) );
 				scatterplot x=&x y=&y / group=&x usediscretesize=true discretemarkersize=0.85;
+				ANNOTATE; /*to add the title. The anno table is defined is monthplot.sas*/
 				/*The following layout is defined the legend.*/
-				ANNOTATE; 
 				layout gridded / columns =1 border=true autoalign=(bottomright topright) backgroundcolor=lightyellow ;
 					
 					entry halign=left  {unicode '2014'x} halign=right "mean line";

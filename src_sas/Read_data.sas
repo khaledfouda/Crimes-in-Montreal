@@ -75,8 +75,15 @@ Optional - We export only 3 random rows to a file. Uncomment if needed.
 /* run; */
 /* ods printer close; */
 /* ods listing; */
-
-
-
-
-
+*------------------------
+* Print column descroptions from proc contents; 
+*Uncomment the following to save to file.;
+*ods _all_ close; 
+*options printerpath=png nodate papersize=('4.8in','4.5in') nonumber; 
+*ods printer file="&print_dir\table_contents.png";
+ods select Variables;
+title;title2;footnote;
+ proc contents data=work.sample_print; 
+ run; 
+ *ods printer close; 
+ *ods listing; 
