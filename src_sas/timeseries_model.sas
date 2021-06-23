@@ -32,6 +32,42 @@ proc timeseries data=sorted out=outsor;
 	id date interval=month start='01JAN2015'd end='31MAY2021'd setmissing=.0000;
 	var count;
 run;
+*----------------------------------------------------------------;
+* First, plot the timeseries to notice trends & seasonality.;
+
+
+%macro layout(c);
+layout overlay/ yaxisopts=(label=' ') xaxisopts=(label=' ');
+        seriesplot x=date y=eval(ifn(category=&c, count,.))  ;
+		entry halign=center &c / valign=top border=true;
+      endlayout;
+%mend;
+
+proc template;
+  define statgraph mylay;
+  begingraph;
+    entrytitle "Changes Over Time";
+    layout lattice / border=true pad=10 opaque=true
+                    rows=3 columns=2 columngutter=3;
+      
+      %layout('Armed Robbery');
+	  %layout('Fatal Crime');
+	  %layout('Auto Burglary');
+	  %layout('Auto theft');
+	  %layout('Break and Enter');
+	  %layout('Mischief');
+      
+    endlayout;
+  endgraph;
+  end;
+run;
+title;footnote;
+ods listing gpath="&print_dir" image_dpi=200 ;
+ods graphics on / reset scalemarkers=no width=800px imagename="timeseries" ;
+proc sgrender data=outsor template=mylay;
+run;
+ods listing;
+ods graphics;
 
 *-----------------------------------------------------------;
 
