@@ -2,3 +2,7 @@
 data/input
 data/processing
 *.twb
+.RData
+.Rhistory
+.gitignore
+.gitattributes
