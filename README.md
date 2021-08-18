@@ -2,7 +2,7 @@
  
 > Montreal’s police department has witnessed changes due to the current pandemic and the closing and merging of stations over the last few years. A dataset of criminal acts became available on the open data portal of the city. For each act we have its category, the date and time, the geographic location and the police division assigned with it. The dataset covers the time from 01 January 2015 until today and is updated regularly. We wish to analyze the changes in crime trends over the years.  
  
- **Please check the full report on Medium.com https://medium.com/@khaledsfouda/montreal-crime-study-e64f75bf0b3fhttps://medium.com/@khaledsfouda/montreal-crime-study-e64f75bf0b3f** 
+ **Please check the full report on Medium.com https://medium.com/@khaledsfouda/montreal-crime-study-e64f75bf0b3f** 
  
  In this repo you can find source code, data, and generated plots.   
  Methodology is explained below.  
