@@ -6,3 +6,8 @@ data/processing
 .Rhistory
 .gitignore
 .gitattributes
+src_R/etc
+src_sas/old
+school_submission
+data/tmp
+plots/SAS/all_plots.zip
