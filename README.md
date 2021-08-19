@@ -1,5 +1,5 @@
-# Crimes in Montreal
- Analyzing the changes in crime trends over years using the publically available dataset of criminal acts on the city's open data portal. Auto Burglary is the most alarming crime category. Merci-Hochelaga-Maisonneuve experienced a big decrease in crime rate by 26.4% in 2018 while the plateau had the biggest increase among all districts by 10% in 2019. The crime rate peaks in October and achieves its minimum in February. Most crime categories are exhibiting a decreasing trend except for auto theft and fatal crimes which have an increasing trend.  
+# Montreal Crime Study
+ Analyzing the changes in crime trends over years using the publicly available dataset of criminal acts on the city's open data portal. Auto Burglary is the most alarming crime category. Mercier-Hochelaga-Maisonneuve experienced a big decrease in crime rate by 26.4% in 2018 while the plateau had the biggest increase among all districts by 10% in 2019. The crime rate peaks in October and achieves its minimum in February. Most crime categories are exhibiting a decreasing trend except for auto theft and fatal crimes which have an increasing trend.  
  
  **Please check the full report on Medium.com https://medium.com/@khaledsfouda/montreal-crime-study-e64f75bf0b3f** 
  ![](plots/SAS/EDA/districts_univ.png)  
